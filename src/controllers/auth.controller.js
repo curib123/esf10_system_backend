@@ -1,13 +1,17 @@
 import * as AuthService from '../services/auth.service.js';
 
+/* ============================
+   REGISTER (RBAC-DRIVEN)
+============================ */
 export const register = async (req, res) => {
   try {
-    const { email, password, fullName } = req.body;
+    const { email, password, fullName, roleId } = req.body;
 
     const data = await AuthService.register({
       email,
       password,
       fullName,
+      roleId, // 👈 role selected from Role table
     });
 
     res.status(201).json({
@@ -23,6 +27,9 @@ export const register = async (req, res) => {
   }
 };
 
+/* ============================
+   LOGIN
+============================ */
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -46,7 +53,7 @@ export const login = async (req, res) => {
 };
 
 /* ============================
-   GET ME
+   GET CURRENT USER (/me)
 ============================ */
 export const me = async (req, res) => {
   try {

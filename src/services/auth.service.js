@@ -19,24 +19,26 @@ const isStrongPassword = (password) =>
   /[0-9]/.test(password);
 
 /* ============================
-   REGISTER
+   REGISTER (RBAC-DRIVEN)
 ============================ */
-export const register = async ({ email, password, fullName }) => {
-  /* ---- basic presence validation ---- */
-  if (!email || !password || !fullName) {
-    throw new Error('Email, password, and full name are required');
+export const register = async ({
+  email,
+  password,
+  fullName,
+  roleId, // 👈 selected from Role table
+}) => {
+  /* ---------- validation ---------- */
+  if (!email || !password || !fullName || !roleId) {
+    throw new Error('Email, password, full name, and role are required');
   }
 
-  /* ---- normalize ---- */
   email = email.trim().toLowerCase();
   fullName = fullName.trim();
 
-  /* ---- email validation ---- */
   if (!isValidEmail(email)) {
     throw new Error('Invalid email format');
   }
 
-  /* ---- password validation ---- */
   if (!isStrongPassword(password)) {
     throw new Error(
       'Password must be at least 8 characters and include uppercase, lowercase, and a number'
@@ -51,6 +53,23 @@ export const register = async ({ email, password, fullName }) => {
     throw new Error('Email already exists');
   }
 
+  /* ---------- verify role & permissions ---------- */
+  const role = await db.role.findUnique({
+    where: { id: roleId },
+    include: {
+      permissions: {
+        include: {
+          permission: true,
+        },
+      },
+    },
+  });
+
+  if (!role) {
+    throw new Error('Selected role does not exist');
+  }
+
+  /* ---------- create user ---------- */
   const hashedPassword = await hashPassword(password);
 
   const user = await db.user.create({
@@ -61,23 +80,24 @@ export const register = async ({ email, password, fullName }) => {
     },
   });
 
-  /* ---- assign default USER role ---- */
-  const role = await db.role.findUnique({
-    where: { name: 'USER' },
+  /* ---------- assign role ---------- */
+  await db.userRole.create({
+    data: {
+      userId: user.id,
+      roleId: role.id,
+    },
   });
 
-  if (role) {
-    await db.userRole.create({
-      data: {
-        userId: user.id,
-        roleId: role.id,
-      },
-    });
-  }
+  /* ---------- derive permissions ---------- */
+  const permissions = role.permissions.map(
+    rp => rp.permission.code
+  );
 
+  /* ---------- generate token ---------- */
   const token = generateToken({
     userId: user.id,
-    roles: role ? ['USER'] : [],
+    roles: [role.name],
+    permissions,
   });
 
   return {
@@ -86,6 +106,8 @@ export const register = async ({ email, password, fullName }) => {
       id: user.id,
       email: user.email,
       fullName: user.fullName,
+      role: role.name,
+      permissions,
       isActive: user.isActive,
     },
   };
@@ -110,7 +132,15 @@ export const login = async ({ email, password }) => {
     include: {
       roles: {
         include: {
-          role: true,
+          role: {
+            include: {
+              permissions: {
+                include: {
+                  permission: true,
+                },
+              },
+            },
+          },
         },
       },
     },
@@ -126,10 +156,18 @@ export const login = async ({ email, password }) => {
   }
 
   const roles = user.roles.map(r => r.role.name);
+  const permissions = [
+    ...new Set(
+      user.roles.flatMap(r =>
+        r.role.permissions.map(p => p.permission.code)
+      )
+    ),
+  ];
 
   const token = generateToken({
     userId: user.id,
     roles,
+    permissions,
   });
 
   return {
@@ -139,6 +177,7 @@ export const login = async ({ email, password }) => {
       email: user.email,
       fullName: user.fullName,
       roles,
+      permissions,
     },
   };
 };
@@ -156,7 +195,15 @@ export const getMe = async (userId) => {
     include: {
       roles: {
         include: {
-          role: true,
+          role: {
+            include: {
+              permissions: {
+                include: {
+                  permission: true,
+                },
+              },
+            },
+          },
         },
       },
     },
@@ -166,12 +213,22 @@ export const getMe = async (userId) => {
     throw new Error('User not found');
   }
 
+  const roles = user.roles.map(r => r.role.name);
+  const permissions = [
+    ...new Set(
+      user.roles.flatMap(r =>
+        r.role.permissions.map(p => p.permission.code)
+      )
+    ),
+  ];
+
   return {
     id: user.id,
     email: user.email,
     fullName: user.fullName,
     isActive: user.isActive,
-    roles: user.roles.map(r => r.role.name),
+    roles,
+    permissions,
     createdAt: user.createdAt,
   };
 };
