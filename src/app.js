@@ -2,6 +2,8 @@ import cors from 'cors';
 import express from 'express';
 import morgan from 'morgan';
 
+import authRoutes from './routes/auth.route.js';
+
 /* ================= INITIALIZE APP ================= */
 const app = express();
 
@@ -23,9 +25,8 @@ app.get('/', (req, res) => {
 });
 
 /* ================= ROUTES ================= */
-// example:
-// import teacherRoutes from './routes/teacher.routes.js';
-// app.use('/esf10/teachers', teacherRoutes);
+
+app.use('/api/auth', authRoutes);
 
 /* ================= 404 HANDLER ================= */
 app.use((req, res) => {
