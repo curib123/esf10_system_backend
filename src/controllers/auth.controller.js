@@ -44,3 +44,24 @@ export const login = async (req, res) => {
     });
   }
 };
+
+/* ============================
+   GET ME
+============================ */
+export const me = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+
+    const user = await AuthService.getMe(userId);
+
+    res.json({
+      success: true,
+      data: user,
+    });
+  } catch (error) {
+    res.status(401).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
