@@ -30,8 +30,11 @@ model Role {
   name        String @unique
   description String?
 
-  users       UserRole[]
-  permissions RolePermission[]
+  users        UserRole[]
+  permissions  RolePermission[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) // 👈 FIX
 }
 
 model Permission {
@@ -40,26 +43,43 @@ model Permission {
   description String?
 
   roles RolePermission[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) // 👈 FIX
 }
+
+/* ============================
+   PIVOT: USER ↔ ROLE
+============================ */
 
 model UserRole {
   userId Int
   roleId Int
 
-  user User @relation(fields: [userId], references: [id])
-  role Role @relation(fields: [roleId], references: [id])
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  assignedAt DateTime @default(now())
 
   @@id([userId, roleId])
+  @@index([roleId])
 }
+
+/* ============================
+   PIVOT: ROLE ↔ PERMISSION
+============================ */
 
 model RolePermission {
   roleId       Int
   permissionId Int
 
-  role       Role       @relation(fields: [roleId], references: [id])
-  permission Permission @relation(fields: [permissionId], references: [id])
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  assignedAt DateTime @default(now())
 
   @@id([roleId, permissionId])
+  @@index([permissionId])
 }
 
 /* ============================
