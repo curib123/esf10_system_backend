@@ -202,14 +202,6 @@ Student
 
 ---
 
-## 🟢 Status Checklist
-
-- [x] Prisma schema finalized
-- [x] RBAC implemented
-- [x] Enrollment-based grades
-- [x] Document support for previous grades
-- [ ] SF10 Excel generator
-- [ ] Production deployment
 
 ---
 
