@@ -1,0 +1,243 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/* ============================
+   AUTH & RBAC
+============================ */
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  fullName  String
+  isActive  Boolean  @default(true)
+
+  roles     UserRole[]
+  auditLogs AuditLog[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Role {
+  id          Int    @id @default(autoincrement())
+  name        String @unique
+  description String?
+
+  users       UserRole[]
+  permissions RolePermission[]
+}
+
+model Permission {
+  id          Int    @id @default(autoincrement())
+  code        String @unique
+  description String?
+
+  roles RolePermission[]
+}
+
+model UserRole {
+  userId Int
+  roleId Int
+
+  user User @relation(fields: [userId], references: [id])
+  role Role @relation(fields: [roleId], references: [id])
+
+  @@id([userId, roleId])
+}
+
+model RolePermission {
+  roleId       Int
+  permissionId Int
+
+  role       Role       @relation(fields: [roleId], references: [id])
+  permission Permission @relation(fields: [permissionId], references: [id])
+
+  @@id([roleId, permissionId])
+}
+
+/* ============================
+   STUDENT CORE
+============================ */
+
+model Student {
+  id         Int      @id @default(autoincrement())
+  lrn        String   @unique
+  firstName  String
+  middleName String?
+  lastName   String
+  gender     String
+  birthDate  DateTime
+  address    String
+
+  enrollments Enrollment[]
+  documents   Document[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([lastName, firstName])
+}
+
+/* ============================
+   SCHOOL YEAR
+============================ */
+
+model SchoolYear {
+  id        Int     @id @default(autoincrement())
+  year      String  @unique
+  isActive  Boolean @default(false)
+
+  enrollments Enrollment[]
+}
+
+/* ============================
+   CURRICULUM & VERSIONING
+============================ */
+
+model Curriculum {
+  id    Int    @id @default(autoincrement())
+  name  String
+
+  versions CurriculumVersion[]
+}
+
+model CurriculumVersion {
+  id            Int    @id @default(autoincrement())
+  curriculumId  Int
+  name          String
+  effectiveFrom Int
+  effectiveTo   Int?
+
+  curriculum Curriculum @relation(fields: [curriculumId], references: [id])
+  subjects   Subject[]
+  enrollments Enrollment[]
+}
+
+/* ============================
+   SUBJECTS
+============================ */
+
+model Subject {
+  id                  Int    @id @default(autoincrement())
+  curriculumVersionId Int
+  gradeLevel          String
+  code                String
+  name                String
+
+  curriculumVersion CurriculumVersion @relation(fields: [curriculumVersionId], references: [id])
+  grades             Grade[]
+
+  @@unique([curriculumVersionId, gradeLevel, code])
+}
+
+/* ============================
+   ENROLLMENT
+============================ */
+
+model Enrollment {
+  id                  Int      @id @default(autoincrement())
+  studentId           Int
+  schoolYearId        Int
+  curriculumVersionId Int
+  gradeLevel          String
+  section             String?
+  status              EnrollmentStatus @default(ACTIVE)
+
+  student           Student           @relation(fields: [studentId], references: [id])
+  schoolYear        SchoolYear        @relation(fields: [schoolYearId], references: [id])
+  curriculumVersion CurriculumVersion @relation(fields: [curriculumVersionId], references: [id])
+  grades            Grade[]
+  documents         Document[]   // 👈 NEW (reverse relation)
+
+  createdAt DateTime @default(now())
+
+  @@unique([studentId, schoolYearId])
+}
+
+enum EnrollmentStatus {
+  ACTIVE
+  COMPLETED
+  IMPORTED
+}
+
+/* ============================
+   GRADES
+============================ */
+
+model Grade {
+  id           Int      @id @default(autoincrement())
+  enrollmentId Int
+  subjectId    Int
+  period       GradingPeriod
+  value        Float
+  source       GradeSource @default(SYSTEM)
+
+  enrollment Enrollment @relation(fields: [enrollmentId], references: [id])
+  subject    Subject    @relation(fields: [subjectId], references: [id])
+
+  @@unique([enrollmentId, subjectId, period])
+}
+
+enum GradeSource {
+  SYSTEM
+  IMPORTED
+}
+
+enum GradingPeriod {
+  Q1
+  Q2
+  Q3
+  Q4
+  FINAL
+}
+
+/* ============================
+   DOCUMENTS (UPDATED)
+============================ */
+
+model Document {
+  id           Int      @id @default(autoincrement())
+  studentId    Int
+  enrollmentId Int?     // 👈 OPTIONAL: link to previous grade level
+  type         String   // SF9, Report Card, Birth Cert, etc.
+  fileUrl      String
+
+  student     Student     @relation(fields: [studentId], references: [id])
+  enrollment  Enrollment? @relation(fields: [enrollmentId], references: [id])
+
+  uploadedAt DateTime @default(now())
+}
+
+/* ============================
+   SYSTEM SETTINGS
+============================ */
+
+model SystemSetting {
+  id    Int    @id @default(autoincrement())
+  key   String @unique
+  value String
+}
+
+/* ============================
+   AUDIT LOG
+============================ */
+
+model AuditLog {
+  id        Int      @id @default(autoincrement())
+  userId    Int?
+  action    String
+  entity    String
+  entityId  Int?
+  oldValue  Json?
+  newValue  Json?
+  createdAt DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id])
+}
