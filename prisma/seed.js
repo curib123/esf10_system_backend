@@ -1,3 +1,5 @@
+import bcrypt from 'bcrypt';
+
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient()
@@ -132,7 +134,6 @@ async function main() {
      ROLE → PERMISSION ASSIGNMENT
   ============================ */
 
-  // SUPER ADMIN → ALL
   for (const perm of permissionRecords) {
     await prisma.rolePermission.upsert({
       where: {
@@ -149,39 +150,32 @@ async function main() {
     })
   }
 
-  // REGISTRAR
   await assignPermissions(REGISTRAR.id, [
     'student.create',
     'student.update',
     'student.view',
     'student.search',
     'student.archive',
-
     'enrollment.create',
     'enrollment.update',
     'enrollment.view',
     'enrollment.complete',
     'enrollment.import',
-
     'document.upload',
     'document.view',
-
     'sf10.generate',
     'sf10.view',
     'sf10.export',
-
     'report.view',
     'report.export',
   ])
 
-  // TEACHER
   await assignPermissions(TEACHER.id, [
     'grades.encode',
     'grades.update',
     'grades.view',
   ])
 
-  // VIEWER
   await assignPermissions(VIEWER.id, [
     'student.view',
     'student.search',
@@ -191,11 +185,53 @@ async function main() {
     'report.view',
   ])
 
-  console.log('✅ RBAC seed completed successfully')
+  /* ============================
+     SEED USERS
+  ============================ */
+
+  const SALT_ROUNDS = Number(process.env.BCRYPT_SALT_ROUNDS || 10)
+
+  const users = [
+    { email: 'admin@esf10.local', fullName: 'System Admin', password: 'admin123', role: SUPER_ADMIN },
+    { email: 'registrar@esf10.local', fullName: 'Registrar User', password: 'registrar123', role: REGISTRAR },
+    { email: 'teacher@esf10.local', fullName: 'Teacher User', password: 'teacher123', role: TEACHER },
+    { email: 'viewer@esf10.local', fullName: 'Viewer User', password: 'viewer123', role: VIEWER },
+  ]
+
+  for (const u of users) {
+    const hashed = await bcrypt.hash(u.password, SALT_ROUNDS)
+
+    const user = await prisma.user.upsert({
+      where: { email: u.email },
+      update: {},
+      create: {
+        email: u.email,
+        password: hashed,
+        fullName: u.fullName,
+        isActive: true,
+      },
+    })
+
+    await prisma.userRole.upsert({
+      where: {
+        userId_roleId: {
+          userId: user.id,
+          roleId: u.role.id,
+        },
+      },
+      update: {},
+      create: {
+        userId: user.id,
+        roleId: u.role.id,
+      },
+    })
+  }
+
+  console.log('✅ RBAC + USERS seed completed successfully')
 }
 
 /* ============================
-   HELPER
+   HELPERS
 ============================ */
 
 async function assignPermissions(roleId, codes) {
