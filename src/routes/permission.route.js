@@ -1,23 +1,29 @@
 import express from 'express';
 
-import {
-  createPermission,
-  deletePermission,
-  getPermissions,
-  updatePermission,
-} from '../controllers/permission.controller.js';
+import { getPermissions } from '../controllers/permission.controller.js';
 import {
   authenticate,
+  authorizePermission,
   authorizeRole,
 } from '../middleware/auth.middleware.js';
 
 const router = express.Router();
 
-router.use(authenticate);
+/* ============================
+   GLOBAL GUARDS
+============================ */
+const ADMIN_ROLE = process.env.RBAC_ADMIN_ROLE;
 
-router.post('/', authorizeRole('permission.create'), createPermission);
-router.get('/', authorizeRole('permission.view'), getPermissions);
-router.put('/:id', authorizeRole('permission.update'), updatePermission);
-router.delete('/:id', authorizeRole('permission.delete'), deletePermission);
+if (!ADMIN_ROLE) {
+  throw new Error('RBAC_ADMIN_ROLE is not defined in environment variables');
+}
+
+router.use(authenticate);
+router.use(authorizeRole(ADMIN_ROLE));
+
+/* ============================
+   PERMISSION ROUTES
+============================ */
+router.get('/', authorizePermission('permission.view'), getPermissions);
 
 export default router;
