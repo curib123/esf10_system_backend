@@ -84,9 +84,12 @@ async function main() {
     /* SYSTEM */
     'system.view',
     'system.update',
-    'school_year.create',
-    'school_year.activate',
-    'school_year.close',
+
+    /* SCHOOL YEAR */
+    'school-year.create',
+    'school-year.view',
+    'school-year.update',
+    'school-year.delete',
 
     /* AUDIT */
     'audit.view',
