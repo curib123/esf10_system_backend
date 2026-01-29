@@ -34,16 +34,30 @@ export const getUser = async (req, res) => {
 ========================= */
 export const updateUser = async (req, res) => {
   try {
-    const user = await userService.updateUser(
-      Number(req.params.id),
-      req.body
-    );
+    const userId = Number(req.params.id);
 
-    res.json({ success: true, data: user });
+    const user = await userService.updateUser(userId, req.body);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found',
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'User updated successfully',
+      data: user,
+    });
   } catch (err) {
-    res.status(400).json({ success: false, message: err.message });
+    res.status(400).json({
+      success: false,
+      message: err.message,
+    });
   }
 };
+
 
 /* =========================
    DELETE USER

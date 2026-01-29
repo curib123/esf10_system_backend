@@ -82,12 +82,21 @@ export const getUserById = async (id) => {
    UPDATE USER
 ========================= */
 export const updateUser = async (id, data) => {
-  const updateData = {
-    email: data.email,
-    fullName: data.fullName,
-    isActive: data.isActive,
-  };
+  const updateData = {};
 
+  if (data.email !== undefined) {
+    updateData.email = data.email;
+  }
+
+  if (data.fullName !== undefined) {
+    updateData.fullName = data.fullName;
+  }
+
+  if (data.isActive !== undefined) {
+    updateData.isActive = data.isActive;
+  }
+
+  // Optional password change
   if (data.password) {
     updateData.password = await hashPassword(data.password);
   }
@@ -95,8 +104,16 @@ export const updateUser = async (id, data) => {
   return db.user.update({
     where: { id },
     data: updateData,
+    select: {
+      id: true,
+      email: true,
+      fullName: true,
+      isActive: true,
+      createdAt: true,
+    },
   });
 };
+
 
 /* =========================
    DELETE USER
