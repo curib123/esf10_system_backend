@@ -1,7 +1,6 @@
 import express from 'express';
 
 import {
-  assignRoles,
   deleteUser,
   getUser,
   getUsers,
@@ -67,11 +66,5 @@ router.delete(
   deleteUser
 );
 
-// Assign roles to user
-router.put(
-  '/:id/roles',
-  authorizePermission('user.assign-role'),
-  assignRoles
-);
 
 export default router;
