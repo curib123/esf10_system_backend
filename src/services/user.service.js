@@ -79,65 +79,76 @@ export const getUserById = async (id) => {
 };
 
 /* =========================
-   CREATE USER (ADMIN)
-========================= */
-export const createUser = async (data) => {
-  const hashedPassword = await hashPassword(data.password);
-
-  return db.user.create({
-    data: {
-      email: data.email,
-      fullName: data.fullName,
-      password: hashedPassword,
-      roles: {
-        create: data.roleIds?.map((roleId) => ({
-          roleId,
-        })),
-      },
-    },
-  });
-};
-
-/* =========================
-   UPDATE USER
+   UPDATE USER (INFO + PASSWORD + ROLES)
 ========================= */
 export const updateUser = async (id, data) => {
-  const updateData = {
-    email: data.email,
-    fullName: data.fullName,
-    isActive: data.isActive,
-  };
+  return db.$transaction(async (tx) => {
+    const updateData = {};
 
-  if (data.password) {
-    updateData.password = await hashPassword(data.password);
-  }
+    if (data.email !== undefined) {
+      updateData.email = data.email;
+    }
 
-  return db.user.update({
-    where: { id },
-    data: updateData,
+    if (data.fullName !== undefined) {
+      updateData.fullName = data.fullName;
+    }
+
+    if (data.isActive !== undefined) {
+      updateData.isActive = data.isActive;
+    }
+
+    if (data.password) {
+      updateData.password = await hashPassword(data.password);
+    }
+
+    // Update user basic info
+    const user = await tx.user.update({
+      where: { id },
+      data: updateData,
+      select: {
+        id: true,
+        email: true,
+        fullName: true,
+        isActive: true,
+        createdAt: true,
+      },
+    });
+
+    // Update roles if provided
+    if (Array.isArray(data.roleIds)) {
+      await tx.userRole.deleteMany({ where: { userId: id } });
+
+      if (data.roleIds.length > 0) {
+        await tx.userRole.createMany({
+          data: data.roleIds.map((roleId) => ({
+            userId: id,
+            roleId,
+          })),
+        });
+      }
+    }
+
+    return user;
   });
 };
 
 /* =========================
-   DELETE USER
+   DELETE USER (SOFT DELETE)
 ========================= */
 export const deleteUser = async (id) => {
-  return db.user.delete({
+  return db.user.update({
     where: { id },
-  });
-};
-
-/* =========================
-   ASSIGN ROLES
-========================= */
-export const assignRoles = async (userId, roleIds = []) => {
-  await db.userRole.deleteMany({ where: { userId } });
-
-  return db.userRole.createMany({
-    data: roleIds.map((roleId) => ({
-      userId,
-      roleId,
-    })),
+    data: {
+      deletedAt: new Date(),
+      isActive: false, // 👈 optional but recommended
+    },
+    select: {
+      id: true,
+      email: true,
+      fullName: true,
+      isActive: true,
+      deletedAt: true,
+    },
   });
 };
 
@@ -145,7 +156,6 @@ export const assignRoles = async (userId, roleIds = []) => {
    TOGGLE USER ACTIVE STATUS
 ========================= */
 export const toggleUserActive = async (id) => {
-  // get current status
   const user = await db.user.findUnique({
     where: { id },
     select: { isActive: true },

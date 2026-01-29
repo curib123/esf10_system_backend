@@ -5,13 +5,13 @@ import * as AuthService from '../services/auth.service.js';
 ============================ */
 export const register = async (req, res) => {
   try {
-    const { email, password, fullName, roleId } = req.body;
+    const { email, password, fullName, roleIds } = req.body;
 
     const data = await AuthService.register({
       email,
       password,
       fullName,
-      roleId, // 👈 role selected from Role table
+      roleIds, // 👈 array of role IDs
     });
 
     res.status(201).json({

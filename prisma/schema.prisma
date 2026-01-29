@@ -17,6 +17,7 @@ model User {
   password  String
   fullName  String
   isActive  Boolean  @default(true)
+  deletedAt DateTime?        // 👈 SOFT DELETE
 
   roles     UserRole[]
   auditLogs AuditLog[]
@@ -32,9 +33,10 @@ model Role {
 
   users        UserRole[]
   permissions  RolePermission[]
-
+  
+  deletedAt DateTime?  
   createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) // 👈 FIX
+  updatedAt DateTime @default(now())
 }
 
 model Permission {
@@ -45,7 +47,7 @@ model Permission {
   roles RolePermission[]
 
   createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) // 👈 FIX
+  updatedAt DateTime @default(now())
 }
 
 /* ============================
@@ -95,6 +97,7 @@ model Student {
   gender     String
   birthDate  DateTime
   address    String
+  deletedAt  DateTime?        // 👈 SOFT DELETE
 
   enrollments Enrollment[]
   documents   Document[]
@@ -169,12 +172,13 @@ model Enrollment {
   gradeLevel          String
   section             String?
   status              EnrollmentStatus @default(ACTIVE)
+  deletedAt           DateTime?        // 👈 SOFT DELETE
 
   student           Student           @relation(fields: [studentId], references: [id])
   schoolYear        SchoolYear        @relation(fields: [schoolYearId], references: [id])
   curriculumVersion CurriculumVersion @relation(fields: [curriculumVersionId], references: [id])
   grades            Grade[]
-  documents         Document[]   // 👈 NEW (reverse relation)
+  documents         Document[]
 
   createdAt DateTime @default(now())
 
@@ -219,15 +223,16 @@ enum GradingPeriod {
 }
 
 /* ============================
-   DOCUMENTS (UPDATED)
+   DOCUMENTS
 ============================ */
 
 model Document {
   id           Int      @id @default(autoincrement())
   studentId    Int
-  enrollmentId Int?     // 👈 OPTIONAL: link to previous grade level
-  type         String   // SF9, Report Card, Birth Cert, etc.
+  enrollmentId Int?
+  type         String
   fileUrl      String
+  deletedAt    DateTime?        // 👈 SOFT DELETE
 
   student     Student     @relation(fields: [studentId], references: [id])
   enrollment  Enrollment? @relation(fields: [enrollmentId], references: [id])
@@ -246,7 +251,7 @@ model SystemSetting {
 }
 
 /* ============================
-   AUDIT LOG
+   AUDIT LOG (IMMUTABLE)
 ============================ */
 
 model AuditLog {

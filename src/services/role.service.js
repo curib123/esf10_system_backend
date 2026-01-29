@@ -33,11 +33,20 @@ export const RoleService = {
     });
   },
 
-  delete(id) {
-    return db.role.delete({
-      where: { id },
-    });
-  },
+ delete(id) {
+  return db.role.update({
+    where: { id },
+    data: {
+      deletedAt: new Date(),
+    },
+    select: {
+      id: true,
+      name: true,
+      deletedAt: true,
+    },
+  });
+},
+
 
   setPermissions(roleId, permissionIds) {
     return db.$transaction([

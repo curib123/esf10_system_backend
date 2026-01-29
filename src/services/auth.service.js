@@ -25,11 +25,11 @@ export const register = async ({
   email,
   password,
   fullName,
-  roleId, // 👈 selected from Role table
+  roleIds, // 👈 array of role IDs
 }) => {
   /* ---------- validation ---------- */
-  if (!email || !password || !fullName || !roleId) {
-    throw new Error('Email, password, full name, and role are required');
+  if (!email || !password || !fullName || !Array.isArray(roleIds) || roleIds.length === 0) {
+    throw new Error('Email, password, full name, and roles are required');
   }
 
   email = email.trim().toLowerCase();
@@ -53,9 +53,11 @@ export const register = async ({
     throw new Error('Email already exists');
   }
 
-  /* ---------- verify role & permissions ---------- */
-  const role = await db.role.findUnique({
-    where: { id: roleId },
+  /* ---------- verify roles ---------- */
+  const roles = await db.role.findMany({
+    where: {
+      id: { in: roleIds },
+    },
     include: {
       permissions: {
         include: {
@@ -65,8 +67,13 @@ export const register = async ({
     },
   });
 
-  if (!role) {
-    throw new Error('Selected role does not exist');
+  if (roles.length !== roleIds.length) {
+    throw new Error('One or more selected roles do not exist');
+  }
+
+  /* ---------- prevent SUPER_ADMIN assignment ---------- */
+  if (roles.some(r => r.name === 'SUPER_ADMIN')) {
+    throw new Error('SUPER_ADMIN role cannot be assigned via register');
   }
 
   /* ---------- create user ---------- */
@@ -80,23 +87,27 @@ export const register = async ({
     },
   });
 
-  /* ---------- assign role ---------- */
-  await db.userRole.create({
-    data: {
+  /* ---------- assign roles ---------- */
+  await db.userRole.createMany({
+    data: roles.map(role => ({
       userId: user.id,
       roleId: role.id,
-    },
+    })),
   });
 
   /* ---------- derive permissions ---------- */
-  const permissions = role.permissions.map(
-    rp => rp.permission.code
-  );
+  const permissions = [
+    ...new Set(
+      roles.flatMap(role =>
+        role.permissions.map(rp => rp.permission.code)
+      )
+    ),
+  ];
 
   /* ---------- generate token ---------- */
   const token = generateToken({
     userId: user.id,
-    roles: [role.name],
+    roles: roles.map(r => r.name),
     permissions,
   });
 
@@ -106,12 +117,13 @@ export const register = async ({
       id: user.id,
       email: user.email,
       fullName: user.fullName,
-      role: role.name,
+      roles: roles.map(r => r.name),
       permissions,
       isActive: user.isActive,
     },
   };
 };
+
 
 /* ============================
    LOGIN

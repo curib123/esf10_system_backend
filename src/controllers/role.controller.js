@@ -21,10 +21,33 @@ export const updateRole = async (req, res) => {
 };
 
 export const deleteRole = async (req, res) => {
-  const id = Number(req.params.id);
-  await RoleService.delete(id);
+  try {
+    const id = Number(req.params.id);
 
-  res.json({ success: true, message: 'Role deleted' });
+    const role = await RoleService.delete(id);
+
+    if (!role) {
+      return res.status(404).json({
+        success: false,
+        message: 'Role not found',
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Role deleted',
+      data: {
+        id: role.id,
+        name: role.name,
+        deletedAt: role.deletedAt,
+      },
+    });
+  } catch (err) {
+    res.status(400).json({
+      success: false,
+      message: err.message,
+    });
+  }
 };
 
 export const setRolePermissions = async (req, res) => {
