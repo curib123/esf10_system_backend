@@ -59,25 +59,40 @@ At least one role is required
 
 Success Response — 201 Created
 {
-  "success": true,
-  "message": "User registered successfully",
-  "data": {
-    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-    "user": {
-      "id": 6,
-      "email": "user@example.com",
-      "fullName": "Juan Dela Cruz",
-      "roles": ["REGISTRAR"],
-      "permissions": [
-        "student.view",
-        "student.search",
-        "enrollment.view"
-      ],
-      "isActive": true
+    "success": true,
+    "message": "User registered successfully",
+    "data": {
+        "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjUsInJvbGVzIjpbIlJFR0lTVFJBUiJdLCJwZXJtaXNzaW9ucyI6WyJzdHVkZW50LmNyZWF0ZSIsInN0dWRlbnQudXBkYXRlIiwic3R1ZGVudC52aWV3Iiwic3R1ZGVudC5zZWFyY2giLCJzdHVkZW50LmFyY2hpdmUiLCJlbnJvbGxtZW50LmNyZWF0ZSIsImVucm9sbG1lbnQudXBkYXRlIiwiZW5yb2xsbWVudC52aWV3IiwiZW5yb2xsbWVudC5jb21wbGV0ZSIsImVucm9sbG1lbnQuaW1wb3J0IiwiZG9jdW1lbnQudXBsb2FkIiwiZG9jdW1lbnQudmlldyIsInNmMTAuZ2VuZXJhdGUiLCJzZjEwLnZpZXciLCJzZjEwLmV4cG9ydCIsInJlcG9ydC52aWV3IiwicmVwb3J0LmV4cG9ydCJdLCJpYXQiOjE3Njk2NjI1NzgsImV4cCI6MTc2OTc0ODk3OH0.uqJElw7ZFk3SxBXzOGFF9T94Q9W8KFZWc5JeOw7VM8A",
+        "user": {
+            "id": 5,
+            "email": "user@example.com",
+            "fullName": "Juan Dela Cruz",
+            "roles": [
+                "REGISTRAR"
+            ],
+            "permissions": [
+                "student.create",
+                "student.update",
+                "student.view",
+                "student.search",
+                "student.archive",
+                "enrollment.create",
+                "enrollment.update",
+                "enrollment.view",
+                "enrollment.complete",
+                "enrollment.import",
+                "document.upload",
+                "document.view",
+                "sf10.generate",
+                "sf10.view",
+                "sf10.export",
+                "report.view",
+                "report.export"
+            ],
+            "isActive": true
+        }
     }
-  }
 }
-
 Error Responses
 Status	Message
 400	Email already exists
