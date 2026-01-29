@@ -5,6 +5,7 @@ import morgan from 'morgan';
 import authRoutes from './routes/auth.route.js';
 import permissionRoutes from './routes/permission.route.js';
 import roleRoutes from './routes/role.route.js';
+import schoolYearRoutes from './routes/schoolYear.route.js';
 import userRoutes from './routes/user.route.js';
 
 /* ============================
@@ -39,7 +40,8 @@ app.get('/', (_, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/roles', roleRoutes);
 app.use('/api/permissions', permissionRoutes);
-app.use('/api/users', userRoutes); 
+app.use('/api/users', userRoutes);
+app.use('/api/school-years', schoolYearRoutes); 
 
 /* ============================
    NOT FOUND
