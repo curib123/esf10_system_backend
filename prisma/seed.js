@@ -14,8 +14,9 @@ async function main() {
   const permissions = [
     /* USER & RBAC */
     'user.create',
+    'user.view',
     'user.update',
-    'user.deactivate',
+    'user.delete',
     'user.assign-role',
 
     /* ROLES */
