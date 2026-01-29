@@ -79,26 +79,6 @@ export const getUserById = async (id) => {
 };
 
 /* =========================
-   CREATE USER (ADMIN)
-========================= */
-export const createUser = async (data) => {
-  const hashedPassword = await hashPassword(data.password);
-
-  return db.user.create({
-    data: {
-      email: data.email,
-      fullName: data.fullName,
-      password: hashedPassword,
-      roles: {
-        create: data.roleIds?.map((roleId) => ({
-          roleId,
-        })),
-      },
-    },
-  });
-};
-
-/* =========================
    UPDATE USER
 ========================= */
 export const updateUser = async (id, data) => {
@@ -145,7 +125,6 @@ export const assignRoles = async (userId, roleIds = []) => {
    TOGGLE USER ACTIVE STATUS
 ========================= */
 export const toggleUserActive = async (id) => {
-  // get current status
   const user = await db.user.findUnique({
     where: { id },
     select: { isActive: true },

@@ -2,7 +2,6 @@ import express from 'express';
 
 import {
   assignRoles,
-  createUser,
   deleteUser,
   getUser,
   getUsers,
@@ -45,13 +44,6 @@ router.get(
   '/:id',
   authorizePermission('user.view'),
   getUser
-);
-
-// Create user
-router.post(
-  '/',
-  authorizePermission('user.create'),
-  createUser
 );
 
 // Update user

@@ -18,24 +18,14 @@ export const getUsers = async (req, res) => {
 export const getUser = async (req, res) => {
   try {
     const user = await userService.getUserById(Number(req.params.id));
+
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
+
     res.json({ success: true, data: user });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
-  }
-};
-
-/* =========================
-   CREATE USER
-========================= */
-export const createUser = async (req, res) => {
-  try {
-    const user = await userService.createUser(req.body);
-    res.status(201).json({ success: true, data: user });
-  } catch (err) {
-    res.status(400).json({ success: false, message: err.message });
   }
 };
 
@@ -48,6 +38,7 @@ export const updateUser = async (req, res) => {
       Number(req.params.id),
       req.body
     );
+
     res.json({ success: true, data: user });
   } catch (err) {
     res.status(400).json({ success: false, message: err.message });
@@ -75,6 +66,7 @@ export const assignRoles = async (req, res) => {
       Number(req.params.id),
       req.body.roleIds
     );
+
     res.json({ success: true, message: 'Roles updated' });
   } catch (err) {
     res.status(400).json({ success: false, message: err.message });
