@@ -133,11 +133,22 @@ export const updateUser = async (id, data) => {
 };
 
 /* =========================
-   DELETE USER
+   DELETE USER (SOFT DELETE)
 ========================= */
 export const deleteUser = async (id) => {
-  return db.user.delete({
+  return db.user.update({
     where: { id },
+    data: {
+      deletedAt: new Date(),
+      isActive: false, // 👈 optional but recommended
+    },
+    select: {
+      id: true,
+      email: true,
+      fullName: true,
+      isActive: true,
+      deletedAt: true,
+    },
   });
 };
 

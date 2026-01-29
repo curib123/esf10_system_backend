@@ -61,15 +61,29 @@ export const updateUser = async (req, res) => {
 };
 
 /* =========================
-   DELETE USER
+   DELETE USER (SOFT DELETE)
 ========================= */
 export const deleteUser = async (req, res) => {
   try {
-    await userService.deleteUser(Number(req.params.id));
+    const userId = Number(req.params.id);
+
+    const user = await userService.deleteUser(userId);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found',
+      });
+    }
 
     res.json({
       success: true,
       message: 'User deleted',
+      data: {
+        id: user.id,
+        email: user.email,
+        deletedAt: user.deletedAt,
+      },
     });
   } catch (err) {
     res.status(400).json({
@@ -78,6 +92,7 @@ export const deleteUser = async (req, res) => {
     });
   }
 };
+
 
 /* =========================
    TOGGLE ACTIVE STATUS
