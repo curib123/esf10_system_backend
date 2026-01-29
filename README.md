@@ -60,6 +60,8 @@ CLOUDINARY_API_SECRET=
 CLOUDINARY_ROOT_FOLDER='esf10_system'
 ```
 
+RBAC_ADMIN_ROLE=SUPER_ADMIN
+
 ⚠️ **Never expose `.env` values to client-side code**
 
 ---
