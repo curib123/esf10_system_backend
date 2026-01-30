@@ -28,6 +28,7 @@ export const createGradeLevel = async (req, res) => {
 
     res.status(201).json({
       success: true,
+      message: 'Grade level created successfully',
       data: gradeLevel,
     });
   } catch (error) {
@@ -54,6 +55,7 @@ export const getGradeLevels = async (req, res) => {
 
     res.json({
       success: true,
+      message: 'Grade levels fetched successfully',
       ...result,
     });
   } catch (error) {
@@ -82,6 +84,7 @@ export const getGradeLevelById = async (req, res) => {
 
     res.json({
       success: true,
+      message: 'Grade level fetched successfully',
       data: gradeLevel,
     });
   } catch {
@@ -111,7 +114,7 @@ export const updateGradeLevel = async (req, res) => {
 
     res.json({
       success: true,
-      message: 'Grade level updated',
+      message: 'Grade level updated successfully',
       data: gradeLevel,
     });
   } catch (error) {
@@ -147,7 +150,7 @@ export const toggleGradeLevelStatus = async (req, res) => {
 
     res.json({
       success: true,
-      message: 'Grade level status updated',
+      message: 'Grade level status updated successfully',
       data: updated,
     });
   } catch {
