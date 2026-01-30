@@ -5,6 +5,7 @@ import {
   createEnrollment,
   getEnrollmentById,
   getEnrollments,
+  getSubjectsByEnrollment,
   updateEnrollment,
 } from '../controllers/enrollment.controller.js';
 import {
@@ -103,6 +104,19 @@ router.patch(
   authenticate,
   authorizePermission('enrollment.update'),
   completeEnrollment
+);
+
+
+/**
+ * GET /api/enrollments/:id/subjects
+ *
+ * Returns subjects to be graded for an enrollment
+ */
+router.get(
+  '/:id/subjects',
+  authenticate,
+  authorizePermission(['grades.view', 'enrollment.view']),
+  getSubjectsByEnrollment
 );
 
 export default router;

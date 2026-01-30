@@ -3,6 +3,7 @@ import {
   createEnrollmentService,
   getEnrollmentByIdService,
   getEnrollmentsService,
+  getSubjectsByEnrollmentService,
   updateEnrollmentService,
 } from '../services/enrollment.service.js';
 
@@ -141,6 +142,33 @@ export const completeEnrollment = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to complete enrollment',
+    });
+  }
+};
+
+
+export const getSubjectsByEnrollment = async (req, res) => {
+  try {
+    const subjects = await getSubjectsByEnrollmentService({
+      enrollmentId: Number(req.params.id),
+      currentUserId: req.user.id,
+      permissions: req.user.permissions,
+    });
+
+    res.json({
+      success: true,
+      message: 'Subjects fetched successfully',
+      data: subjects,
+    });
+  } catch (error) {
+    const map = {
+      ENROLLMENT_NOT_FOUND: 'Enrollment not found',
+      FORBIDDEN: 'You do not have permission to view subjects',
+    };
+
+    res.status(error.message === 'ENROLLMENT_NOT_FOUND' ? 404 : 403).json({
+      success: false,
+      message: map[error.message] || 'Failed to fetch subjects',
     });
   }
 };
