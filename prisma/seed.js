@@ -39,26 +39,21 @@ const permissions = [
   'enrollment.create',
   'enrollment.update',
   'enrollment.view',
-  'enrollment.complete',
-  'enrollment.import',
 
   /* CURRICULUM */
   'curriculum.create',
   'curriculum.update',
   'curriculum.view',
-  'curriculum.lock',
 
   /* CURRICULUM VERSION */
   'curriculum_version.create',
   'curriculum_version.update',
   'curriculum_version.view',
-  'curriculum_version.lock',
 
   /* SUBJECTS */
   'subject.create',
   'subject.update',
   'subject.view',
-  'subject.lock',
 
   /* GRADE LEVEL */
   'grade_level.view',
@@ -66,12 +61,9 @@ const permissions = [
   'grade_level.update',
 
   /* GRADES */
-  'grades.encode',
+  'grades.create',
   'grades.update',
   'grades.view',
-  'grades.import',
-  'grades.lock',
-  'grades.unlock',
 
   /* DOCUMENTS */
   'document.upload',

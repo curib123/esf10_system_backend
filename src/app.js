@@ -4,6 +4,7 @@ import morgan from 'morgan';
 
 import authRoutes from './routes/auth.route.js';
 import curriculumRoutes from './routes/curriculum.route.js';
+import enrollmentRoutes from './routes/enrollment.route.js';
 import gradeLevelRoutes from './routes/gradeLevel.route.js';
 import permissionRoutes from './routes/permission.route.js';
 import roleRoutes from './routes/role.route.js';
@@ -50,6 +51,7 @@ app.use('/api/curricula', curriculumRoutes);
 app.use('/api/grade-levels', gradeLevelRoutes);
 app.use('/api/subjects', subjectRoutes);
 app.use('/api/students', studentRoutes);
+app.use('/api/enrollments', enrollmentRoutes);
 /* ============================
    NOT FOUND
 ============================ */

@@ -22,6 +22,8 @@ model User {
   roles     UserRole[]
   auditLogs AuditLog[]
 
+  advisedSections Section[] @relation("SectionAdviser")
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -113,11 +115,12 @@ model Student {
 ============================ */
 
 model SchoolYear {
-  id        Int     @id @default(autoincrement())
-  year      String  @unique
-  isActive  Boolean @default(false)
+  id       Int     @id @default(autoincrement())
+  year     String  @unique
+  isActive Boolean @default(false)
 
   enrollments Enrollment[]
+  sections    Section[]
 }
 
 /* ============================
@@ -125,17 +128,42 @@ model SchoolYear {
 ============================ */
 
 model GradeLevel {
-  id        Int     @id @default(autoincrement())
-  code      String  @unique    // G1, G2, SHS-11
-  name      String             // Grade 1, Grade 2
-  order     Int
-  isActive  Boolean @default(true)
+  id       Int     @id @default(autoincrement())
+  code     String  @unique
+  name     String
+  order    Int
+  isActive Boolean @default(true)
 
   subjects    Subject[]
+  enrollments Enrollment[]
+  sections    Section[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+/* ============================
+   SECTIONS
+============================ */
+
+model Section {
+  id           Int      @id @default(autoincrement())
+  name         String           // A, B, Rose
+  gradeLevelId Int
+  schoolYearId Int
+  adviserId    Int?             // ← User.id
+
+  gradeLevel GradeLevel @relation(fields: [gradeLevelId], references: [id])
+  schoolYear SchoolYear @relation(fields: [schoolYearId], references: [id])
+  adviser    User?      @relation("SectionAdviser", fields: [adviserId], references: [id])
+
   enrollments Enrollment[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@unique([gradeLevelId, schoolYearId, name])
+  @@index([adviserId])
 }
 
 /* ============================
@@ -143,8 +171,8 @@ model GradeLevel {
 ============================ */
 
 model Curriculum {
-  id    Int    @id @default(autoincrement())
-  name  String
+  id   Int    @id @default(autoincrement())
+  name String
 
   versions CurriculumVersion[]
 }
@@ -157,7 +185,7 @@ model CurriculumVersion {
   effectiveTo   Int?
 
   curriculum Curriculum @relation(fields: [curriculumId], references: [id])
-  subjects   Subject[]
+  subjects    Subject[]
   enrollments Enrollment[]
 }
 
@@ -191,7 +219,7 @@ model Enrollment {
   schoolYearId        Int
   curriculumVersionId Int
   gradeLevelId        Int
-  section             String?
+  sectionId           Int?
   status              EnrollmentStatus @default(ACTIVE)
   deletedAt           DateTime?
 
@@ -199,6 +227,7 @@ model Enrollment {
   schoolYear        SchoolYear        @relation(fields: [schoolYearId], references: [id])
   curriculumVersion CurriculumVersion @relation(fields: [curriculumVersionId], references: [id])
   gradeLevel        GradeLevel        @relation(fields: [gradeLevelId], references: [id])
+  section           Section?          @relation(fields: [sectionId], references: [id])
 
   grades    Grade[]
   documents Document[]
@@ -207,6 +236,7 @@ model Enrollment {
 
   @@unique([studentId, schoolYearId])
   @@index([gradeLevelId])
+  @@index([sectionId])
 }
 
 enum EnrollmentStatus {
