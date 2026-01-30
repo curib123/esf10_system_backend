@@ -17,10 +17,9 @@ PATCH /api/enrollments/complete/12
 
 Success Response
 {
-  "success": true,
-  "message": "Enrollment completed successfully"
+    "success": true,
+    "message": "Enrollment completed successfully"
 }
-
 Notes
 
 Completed enrollments should be treated as immutable
