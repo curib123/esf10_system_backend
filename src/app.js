@@ -6,6 +6,7 @@ import authRoutes from './routes/auth.route.js';
 import curriculumRoutes from './routes/curriculum.route.js';
 import enrollmentRoutes from './routes/enrollment.route.js';
 import gradeLevelRoutes from './routes/gradeLevel.route.js';
+import gradeRoutes from './routes/grades.route.js';
 import permissionRoutes from './routes/permission.route.js';
 import roleRoutes from './routes/role.route.js';
 import schoolYearRoutes from './routes/schoolYear.route.js';
@@ -56,6 +57,7 @@ app.use('/api/students', studentRoutes);
 app.use('/api/enrollments', enrollmentRoutes);
 app.use('/api/sections', sectionRoutes);
 app.use('/api/teachers', teacherRoutes);
+app.use('/api/grades', gradeRoutes);
 /* ============================
    NOT FOUND
 ============================ */

@@ -29,9 +29,22 @@ export const getMyAdvisedStudents = async (req, res) => {
       ...result, // data, count, page, limit
     });
   } catch (error) {
-    res.status(500).json({
+    const map = {
+      FORBIDDEN: {
+        status: 403,
+        message: 'You are not allowed to view these students',
+      },
+      NO_ACTIVE_SCHOOL_YEAR: {
+        status: 400,
+        message: 'No active school year found',
+      },
+    };
+
+    const err = map[error.message];
+
+    res.status(err?.status || 500).json({
       success: false,
-      message: 'Failed to fetch advised students',
+      message: err?.message || 'Failed to fetch advised students',
     });
   }
 };

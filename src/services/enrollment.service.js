@@ -211,3 +211,34 @@ export const completeEnrollmentService = async (id) => {
     data: { status: 'COMPLETED' },
   });
 };
+export const getSubjectsByEnrollmentService = async ({
+  enrollmentId,
+  currentUserId,
+}) => {
+  const enrollment = await db.enrollment.findUnique({
+    where: { id: enrollmentId },
+    include: {
+      section: { select: { adviserId: true } },
+    },
+  });
+
+  if (!enrollment) throw new Error('ENROLLMENT_NOT_FOUND');
+
+  // 🔒 Adviser-only for grading context
+  if (enrollment.section?.adviserId !== currentUserId) {
+    throw new Error('FORBIDDEN');
+  }
+
+  return db.subject.findMany({
+    where: {
+      curriculumVersionId: enrollment.curriculumVersionId,
+      gradeLevelId: enrollment.gradeLevelId,
+    },
+    select: {
+      id: true,
+      code: true,
+      name: true,
+    },
+    orderBy: { code: 'asc' },
+  });
+};

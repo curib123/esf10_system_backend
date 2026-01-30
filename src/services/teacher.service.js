@@ -1,18 +1,5 @@
 import { db } from '../configs/db.config.js';
 
-/* =========================
-   HELPERS
-========================= */
-const getPagination = (page = 1, limit = 20) => {
-  const take = Math.min(Number(limit), 50);
-  const skip = (Number(page) - 1) * take;
-  return { take, skip };
-};
-
-/* =========================
-   GET MY ADVISED STUDENTS
-   (with pagination, search, filters)
-========================= */
 export const getMyAdvisedStudentsService = async ({
   currentUserId,
   schoolYearId,
@@ -23,9 +10,12 @@ export const getMyAdvisedStudentsService = async ({
   page = 1,
   limit = 20,
 }) => {
-  const { take, skip } = getPagination(page, limit);
+  const take = Math.min(Number(limit), 50);
+  const skip = (Number(page) - 1) * take;
 
-  // 🔁 default to active school year if not provided
+  /* =========================
+     Resolve Active School Year
+  ========================= */
   let activeSchoolYearId = schoolYearId;
 
   if (!activeSchoolYearId) {
@@ -36,7 +26,10 @@ export const getMyAdvisedStudentsService = async ({
     activeSchoolYearId = activeSY?.id;
   }
 
-  const where = {
+  /* =========================
+     BASE WHERE (NON-NEGOTIABLE)
+  ========================= */
+  const baseWhere = {
     deletedAt: null,
     status,
 
@@ -47,31 +40,27 @@ export const getMyAdvisedStudentsService = async ({
       adviserId: currentUserId,
       ...(activeSchoolYearId && { schoolYearId: activeSchoolYearId }),
     },
+  };
 
-    ...(q && {
-      OR: [
-        {
-          student: {
-            lrn: { contains: q },
-          },
-        },
-        {
-          student: {
-            firstName: { contains: q },
-          },
-        },
-        {
-          student: {
-            lastName: { contains: q },
-          },
-        },
-        {
-          section: {
-            name: { contains: q },
-          },
-        },
-      ],
-    }),
+  /* =========================
+     SEARCH CONDITIONS (OPTIONAL)
+  ========================= */
+  const searchWhere = q
+    ? {
+        OR: [
+          { student: { lrn: { contains: q } } },
+          { student: { firstName: { contains: q } } },
+          { student: { lastName: { contains: q } } },
+          { section: { name: { contains: q } } },
+        ],
+      }
+    : {};
+
+  /* =========================
+     FINAL WHERE (SAFE MERGE)
+  ========================= */
+  const where = {
+    AND: [baseWhere, searchWhere],
   };
 
   const [data, count] = await Promise.all([
