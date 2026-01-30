@@ -214,6 +214,7 @@ export const completeEnrollmentService = async (id) => {
 export const getSubjectsByEnrollmentService = async ({
   enrollmentId,
   currentUserId,
+  permissions,
 }) => {
   const enrollment = await db.enrollment.findUnique({
     where: { id: enrollmentId },
@@ -224,8 +225,16 @@ export const getSubjectsByEnrollmentService = async ({
 
   if (!enrollment) throw new Error('ENROLLMENT_NOT_FOUND');
 
-  // 🔒 Adviser-only for grading context
-  if (enrollment.section?.adviserId !== currentUserId) {
+  // ✅ Check enrollment status
+  if (enrollment.status !== 'ACTIVE') {
+    throw new Error('ENROLLMENT_NOT_ACTIVE');
+  }
+
+  // 🔒 Authorization: Adviser or Admin with grades.view permission
+  const isAdviser = enrollment.section?.adviserId === currentUserId;
+  const canView = permissions?.includes('grades.view') || false;
+
+  if (!isAdviser && !canView) {
     throw new Error('FORBIDDEN');
   }
 
