@@ -8,6 +8,7 @@ import gradeLevelRoutes from './routes/gradeLevel.route.js';
 import permissionRoutes from './routes/permission.route.js';
 import roleRoutes from './routes/role.route.js';
 import schoolYearRoutes from './routes/schoolYear.route.js';
+import subjectRoutes from './routes/subject.route.js';
 import userRoutes from './routes/user.route.js';
 
 /* ============================
@@ -46,7 +47,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/school-years', schoolYearRoutes);
 app.use('/api/curricula', curriculumRoutes);
 app.use('/api/grade-levels', gradeLevelRoutes);
-
+app.use('/api/subjects', subjectRoutes);
 /* ============================
    NOT FOUND
 ============================ */
