@@ -194,8 +194,6 @@ const permissions = [
     'enrollment.create',
     'enrollment.update',
     'enrollment.view',
-    'enrollment.complete',
-    'enrollment.import',
     'document.upload',
     'document.view',
     'sf10.generate',
@@ -206,9 +204,9 @@ const permissions = [
   ]);
 
   await assignPermissions(TEACHER.id, [
-    'grades.encode',
-    'grades.update',
-    'grades.view',
+   'grades.create',
+  'grades.update',
+  'grades.view',
   ]);
 
   await assignPermissions(VIEWER.id, [
