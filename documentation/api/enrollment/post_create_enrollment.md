@@ -18,22 +18,29 @@ gradeLevelId	number	Yes	Must be active
 sectionId	number	No	Must belong to the selected grade level & school year
 Example Request
 {
-  "studentId": 25,
-  "schoolYearId": 3,
-  "curriculumVersionId": 2,
-  "gradeLevelId": 4,
-  "sectionId": 6
+  "studentId": 1,
+  "schoolYearId": 1,
+  "curriculumVersionId": 1,
+  "gradeLevelId": 1,
+  "sectionId": 1
 }
 
 Success Response
 {
-  "success": true,
-  "message": "Enrollment created successfully",
-  "data": {
-    "id": 101
-  }
+    "success": true,
+    "message": "Enrollment created successfully",
+    "data": {
+        "id": 1,
+        "studentId": 1,
+        "schoolYearId": 1,
+        "curriculumVersionId": 1,
+        "gradeLevelId": 1,
+        "sectionId": 1,
+        "status": "ACTIVE",
+        "deletedAt": null,
+        "createdAt": "2026-01-30T10:27:56.389Z"
+    }
 }
-
 Possible Errors
 Error Code	Meaning
 SCHOOL_YEAR_NOT_ACTIVE	School year is not active
