@@ -23,9 +23,9 @@ Success Response (200)
         "code": "G1",
         "name": "Grade One",
         "order": 2,
-        "isActive": true,
+        "isActive": false,
         "createdAt": "2026-01-30T04:33:58.068Z",
-        "updatedAt": "2026-01-30T05:19:03.737Z"
+        "updatedAt": "2026-01-30T08:03:38.830Z"
     }
 }
 
