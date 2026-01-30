@@ -55,6 +55,13 @@ const permissions = [
   'subject.update',
   'subject.view',
 
+  /* SECTIONS */
+'section.view',
+'section.create',
+'section.update',
+'section.delete',
+
+
   /* GRADE LEVEL */
   'grade_level.view',
   'grade_level.create',

@@ -1,227 +1,216 @@
-✅ 1. School Year (DONE)
+# ESF10 System – Complete Development Flow (Updated)
+*(Fully aligned with current Prisma schema, including Section)*
 
-You already have:
+This document defines the **authoritative build and runtime flow** of the ESF10 (SF10) system.
+Follow this order strictly to maintain **data integrity, DepEd compliance, and RBAC security**.
 
-year
+---
 
-isActive
+## 🧠 CORE PRINCIPLES
 
-Enforced uniqueness
+- **SF10 is GENERATED, never stored**
+- **Enrollment is the academic truth**
+- **Grades belong to Enrollment**
+- **Curriculum rules are versioned**
+- **Sections are operational, not academic**
+- **Past data is immutable**
+- **Soft delete uses `deletedAt`**
+- **RBAC is fully data-driven**
 
-Linked to Enrollment
+---
 
-👉 Rule to enforce:
+## 🥇 1. School Year
 
-Only ONE active school year at a time
+**Model:** `SchoolYear`
 
-🔥 NEXT: WHAT TO BUILD (IN ORDER)
-🥈 2. Curriculum → Curriculum Version
+**Fields**
+- `year` (unique)
+- `isActive`
 
-Why next?
-Enrollment depends on CurriculumVersion, not Curriculum directly.
+**Rules**
+- Exactly **ONE active school year**
+- Inactive school year:
+  - Disallows new enrollments
+  - Locks grade encoding
 
-CRUD order
+---
 
-Curriculum
+## 🥈 2. Curriculum → Curriculum Version
 
-create curriculum (e.g. “K–12 Basic Ed”)
+### 2.1 Curriculum
+Represents the **education program**, not the rules.
 
-list curricula
+**Examples**
+- K–12
+- MATATAG
+- Special Program
 
-Curriculum Version
+**Rules**
+- Cannot delete if versions exist
 
-create version (e.g. “2025–2026”)
+---
 
-effectiveFrom / effectiveTo
+### 2.2 Curriculum Version
+Defines the **ruleset for a time period**.
 
-ONE active version per curriculum
+**Fields**
+- `name`
+- `effectiveFrom`
+- `effectiveTo`
 
-Rules
+**Rules**
+- Enrollment references CurriculumVersion
+- Once used → **IMMUTABLE**
+- New school year → new version
 
-Old versions stay immutable (historical grading)
+---
 
-New year → new curriculum version (even if subjects don’t change)
+## 🥉 3. Grade Level
 
-✅ After this, your system can support versioned education rules
+**Model:** `GradeLevel`
 
-🥉 3. Subject
+**Fields**
+- `code` (unique)
+- `name`
+- `order`
+- `isActive`
 
-Subjects depend on:
+**Rules**
+- Controls SF10 ordering
+- Inactive levels block enrollment
 
-CurriculumVersion
+---
 
-Grade Level
+## 🏫 4. Section
 
-CRUD
+**Model:** `Section`
 
-create subject
+**Belongs to**
+- GradeLevel
+- SchoolYear
 
-list by curriculumVersion + gradeLevel
+**Optional**
+- Adviser (`User` with TEACHER role)
 
-update subject name/code
+**Rules**
+- Unique per (gradeLevel, schoolYear, name)
+- Created ONLY for active school year
+- Reset every school year
+- Cannot delete if enrollments exist
 
-soft delete (optional)
+---
 
-Rule
-@@unique([curriculumVersionId, gradeLevel, code])
+## 🧑‍🎓 5. Student
 
+**Model:** `Student`
 
-💡 This prevents duplicate Math subjects in the same grade.
+**Rules**
+- LRN is immutable
+- Soft delete only
+- Soft-deleted students cannot enroll
 
-🏫 4. Student
+---
 
-You already designed this correctly.
+## 🧠 6. Enrollment (CORE TRANSACTION)
 
-CRUD
+**Model:** `Enrollment`
 
-create student
+**Depends on**
+- Student
+- SchoolYear
+- CurriculumVersion
+- GradeLevel
+- Optional Section
 
-update student
+**Rules**
+- One enrollment per student per school year
+- Only ACTIVE enrollment accepts grades
+- Status:
+  - ACTIVE
+  - COMPLETED
+  - IMPORTED
+- COMPLETED enrollments are read-only
 
-soft delete student
+Enrollment = **academic snapshot**
 
-search (LRN, name)
+---
 
-Rules
+## 📊 7. Grade
 
-NEVER hard delete
+**Model:** `Grade`
 
-LRN is immutable
+**Rules**
+- Unique per (enrollment, subject, period)
+- Periods: Q1–Q4, FINAL
+- FINAL auto-calculated
+- FINAL is read-only
+- Locked after enrollment completion
 
-Soft-deleted students can’t enroll
+---
 
-🧠 5. Enrollment (MOST IMPORTANT)
+## 📁 8. Document
 
-This is the core transaction of the system.
+**Model:** `Document`
 
-Depends on:
+**Rules**
+- Belongs to Student
+- Optionally linked to Enrollment
+- Read-only after upload
+- Soft delete only
 
-Student
+---
 
-SchoolYear
+## 🔐 9. Auth & RBAC
 
-CurriculumVersion
+**Models**
+- User
+- Role
+- Permission
+- UserRole
+- RolePermission
 
-CRUD
+**Rules**
+- Roles are soft-deletable
+- Permissions are permanent
+- All sensitive actions logged
 
-enroll student
+---
 
-update enrollment (section, status)
+## ⚙️ 10. System Settings
 
-soft delete enrollment
+**Model:** `SystemSetting`
 
-Rules
+**Rules**
+- Key/value only
+- Cached in memory
+- Used for global flags and grading rules
 
-❌ No duplicate enrollment per year:
+---
 
-@@unique([studentId, schoolYearId])
+## 🧾 11. Audit Log (NO CRUD)
 
+**Model:** `AuditLog`
 
-❌ Cannot enroll if:
+**Rules**
+- Append-only
+- No update
+- No delete
+- Filter only
 
-SchoolYear is not active
+---
 
-Student is soft deleted
+## 🧩 FINAL SYSTEM FLOW
 
-📊 6. Grade
-
-Grades depend on:
-
-Enrollment
-
-Subject
-
-CRUD
-
-create grade
-
-update grade
-
-import grades (bulk)
-
-recompute FINAL grade
-
-Rules
-
-Q1–Q4 auto-calculate FINAL
-
-FINAL should be read-only
-
-📁 7. Document
-
-Used for:
-
-Report cards
-
-Birth certificate
-
-Enrollment proof
-
-CRUD
-
-upload document
-
-list documents per student
-
-soft delete
-
-🔐 8. AUTH & RBAC (ADMIN SIDE)
-
-You already modeled this perfectly.
-
-Build order
-
-Permission CRUD
-
-Role CRUD
-
-Assign permissions to role
-
-Assign role to user
-
-Rule
-
-Roles are soft-deletable
-
-Permissions are NOT soft-deleted (system integrity)
-
-⚙️ 9. System Settings
-
-Used for:
-
-active grading rules
-
-enrollment deadlines
-
-system flags
-
-CRUD
-
-key/value only
-
-cached in memory
-
-🧾 10. Audit Log (NO CRUD)
-
-This is read-only.
-
-Only:
-
-list logs
-
-filter by user / entity / date
-
-🚫 No update
-🚫 No delete
-
-🧩 FINAL FLOW (BIG PICTURE)
+```
 SchoolYear
    ↓
 Curriculum
    ↓
 CurriculumVersion
    ↓
-Subject
+GradeLevel
+   ↓
+Section
    ↓
 Student
    ↓
@@ -230,3 +219,13 @@ Enrollment
 Grade
    ↓
 Document
+```
+
+---
+
+## 🟢 GOLDEN RULE
+
+> **Enrollment defines reality.  
+> Curriculum defines structure.  
+> Section defines placement.  
+> SF10 is pure output.**
