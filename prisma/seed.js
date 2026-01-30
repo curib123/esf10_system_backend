@@ -10,91 +10,91 @@ async function main() {
   /* ============================
      ALL PERMISSIONS
   ============================ */
+const permissions = [
+  /* USER & RBAC */
+  'user.create',
+  'user.view',
+  'user.update',
+  'user.delete',
+  'user.assign-role',
 
-  const permissions = [
-    /* USER & RBAC */
-    'user.create',
-    'user.view',
-    'user.update',
-    'user.delete',
-    'user.assign-role',
+  /* ROLES */
+  'role.create',
+  'role.view',
+  'role.update',
+  'role.delete',
+  'role.assign-permissions',
 
-    /* ROLES */
-    'role.create',
-    'role.view',
-    'role.update',
-    'role.delete',
-    'role.assign-permissions',
+  /* PERMISSIONS */
+  'permission.view',
 
-    /* PERMISSIONS */
-    'permission.view',
+  /* STUDENT */
+  'student.create',
+  'student.update',
+  'student.view',
+  'student.search',
+  'student.archive',
 
-    /* STUDENT */
-    'student.create',
-    'student.update',
-    'student.view',
-    'student.search',
-    'student.archive',
+  /* ENROLLMENT */
+  'enrollment.create',
+  'enrollment.update',
+  'enrollment.view',
+  'enrollment.complete',
+  'enrollment.import',
 
-    /* ENROLLMENT */
-    'enrollment.create',
-    'enrollment.update',
-    'enrollment.view',
-    'enrollment.complete',
-    'enrollment.import',
+  /* CURRICULUM */
+  'curriculum.create',     // ✅
+  'curriculum.update',     // ✅
+  'curriculum.view',       // ✅
+  'curriculum.lock',       // ✅ (used for closing versions / freezing)
 
-    /* CURRICULUM */
-    'curriculum.create',
-    'curriculum.update',
-    'curriculum.view',
-    'curriculum.lock',
+  /* CURRICULUM VERSION */
+  'curriculum_version.create', // ✅
+  'curriculum_version.update', // ✅
+  'curriculum_version.view',   // ✅
+  'curriculum_version.lock',   // ✅
 
-    /* CURRICULUM VERSION */
-    'curriculum_version.create',
-    'curriculum_version.update',
-    'curriculum_version.view',
-    'curriculum_version.lock',
+  /* SUBJECTS */
+  'subject.create',
+  'subject.update',
+  'subject.view',
+  'subject.lock',
 
-    /* SUBJECTS */
-    'subject.create',
-    'subject.update',
-    'subject.view',
-    'subject.lock',
+  /* GRADES */
+  'grades.encode',
+  'grades.update',
+  'grades.view',
+  'grades.import',
+  'grades.lock',
+  'grades.unlock',
 
-    /* GRADES */
-    'grades.encode',
-    'grades.update',
-    'grades.view',
-    'grades.import',
-    'grades.lock',
-    'grades.unlock',
+  /* DOCUMENTS */
+  'document.upload',
+  'document.view',
+  'document.delete',
 
-    /* DOCUMENTS */
-    'document.upload',
-    'document.view',
-    'document.delete',
+  /* SF10 & REPORTS */
+  'sf10.generate',
+  'sf10.view',
+  'sf10.export',
+  'report.view',
+  'report.export',
 
-    /* SF10 & REPORTS */
-    'sf10.generate',
-    'sf10.view',
-    'sf10.export',
-    'report.view',
-    'report.export',
+  /* SYSTEM */
+  'system.view',
+  'system.update',
 
-    /* SYSTEM */
-    'system.view',
-    'system.update',
+  /* SCHOOL YEAR */
+  'school-year.create',
+  'school-year.view',
+  'school-year.update',
+  'school-year.delete',
 
-    /* SCHOOL YEAR */
-    'school-year.create',
-    'school-year.view',
-    'school-year.update',
-    'school-year.delete',
+  /* AUDIT */
+  'audit.view',
+  'audit.export',
+];
 
-    /* AUDIT */
-    'audit.view',
-    'audit.export',
-  ];
 
   /* ============================
      UPSERT PERMISSIONS
