@@ -1,58 +1,51 @@
-# ESF10 System – Application & Development Flow
+# ESF10 System – Updated Application & Development Flow
+*(Aligned with Current Prisma Schema)*
 
-This document describes the **correct flow** of building and operating the ESF10 (SF10) system.
-Follow this order strictly to ensure data integrity, RBAC security, and DepEd compliance.
-
----
-
-## 🧠 CORE PRINCIPLES
-
-- **SF10 is generated, not stored**
-- **Enrollment = one grade level + one school year**
-- **Only ONE active enrollment per student**
-- **Past records are read-only**
-- **Curriculum versions never change once used**
+This document defines the **correct build and runtime flow** of the ESF10 (SF10) system based on the **latest Prisma schema**.
 
 ---
 
-## PHASE 1 – DATABASE & RBAC FOUNDATION (FIRST)
+## 🧠 CORE RULES
 
-### 1.1 Prisma Migration (MANDATORY FIRST STEP)
+- **SF10 is GENERATED, never stored**
+- **Enrollment = Student + School Year**
+- **Only ONE ACTIVE enrollment per student per school year**
+- **Curriculum Versions are immutable once used**
+- **Grades belong to Enrollment, not Student**
+- **Past enrollments are READ-ONLY**
+- **Soft deletes use `deletedAt`**
 
+---
+
+## PHASE 1 – DATABASE & RBAC FOUNDATION
+
+### 1.1 Prisma Migration
 ```bash
-npx prisma migrate dev --name init_esf10_rbac
+npx prisma migrate dev --name init_esf10
 ```
 
-This:
-- Creates all tables
-- Locks schema design
-- Generates Prisma Client
-
-🚫 Do not build features before this step.
+Creates:
+- Core entities
+- RBAC structure
+- Relations & constraints
+- Prisma Client
 
 ---
 
-### 1.2 RBAC Seed (REQUIRED)
-
+### 1.2 RBAC Seed
 ```bash
 npx prisma db seed
 ```
 
 Seeds:
-- All permissions
-- Default roles:
-  - SUPER_ADMIN
-  - REGISTRAR
-  - TEACHER
-  - VIEWER
-- Role → Permission mappings
-
-RBAC is now **data-driven**, not hardcoded.
+- Permissions
+- Roles: SUPER_ADMIN, REGISTRAR, TEACHER, VIEWER
+- Role–Permission mappings
 
 ---
 
-### 1.3 (Optional) Seed SUPER_ADMIN User
-- Create initial admin account
+### 1.3 Initial SUPER_ADMIN
+- Create admin user
 - Assign SUPER_ADMIN role
 
 ---
@@ -60,149 +53,135 @@ RBAC is now **data-driven**, not hardcoded.
 ## PHASE 2 – SYSTEM CONFIGURATION
 
 ### 2.1 System Settings
-Configure:
+Configured via `SystemSetting`:
 - School name
 - Address
-- Active grading periods
-- System defaults
+- Defaults
+
+### 2.2 School Year
+- Create school years
+- Exactly ONE active school year
+- Closing locks grades & enrollments
 
 ---
 
-### 2.2 School Year Management
-- Create school year
-- Activate exactly ONE school year
-- Closing a school year locks grades
-
----
-
-## PHASE 3 – CURRICULUM SETUP (BEFORE STUDENTS)
+## PHASE 3 – CURRICULUM SETUP
 
 ### 3.1 Curriculum
 Examples:
 - K–12
 - MATATAG
-- Private / Special
-
----
+- Special programs
 
 ### 3.2 Curriculum Versions
-Each curriculum can have multiple versions:
-- Version name
+- Name
 - Effective years
-- Once used → LOCKED
+- Locked once used
 
----
+### 3.3 Grade Levels
+- Ordered
+- Active/inactive
 
-### 3.3 Subjects
-- Created per curriculum version
-- Assigned per grade level
+### 3.4 Subjects
+- Per curriculum version & grade level
 - Immutable once grades exist
 
-🚫 Never edit subjects after grade encoding starts.
+---
+
+## PHASE 4 – SECTION MANAGEMENT
+
+- Sections belong to Grade Level + School Year
+- Optional adviser (Teacher)
+- Unique per year
 
 ---
 
-## PHASE 4 – STUDENT & ENROLLMENT FLOW
+## PHASE 5 – STUDENT & ENROLLMENT
 
-### 4.1 Student Registration
-- Encode student information
-- No grades at this stage
+### 5.1 Student Registration
+- Personal info only
+- No grades yet
 
----
+### 5.2 Enrollment
+Links:
+- Student
+- School Year
+- Curriculum Version
+- Grade Level
+- Section (optional)
 
-### 4.2 Enrollment (CRITICAL RULE)
+Rules:
 - One enrollment per student per school year
-- Only one ACTIVE enrollment
+- Status: ACTIVE, COMPLETED, IMPORTED
 
-Enrollment includes:
-- Grade level
-- School year
-- Curriculum version
-
----
-
-## PHASE 5 – GRADE MANAGEMENT
-
-### 5.1 Grade Encoding
-- Encode grades ONLY for ACTIVE enrollment
-- Based on curriculum subjects
-- Grading periods: Q1–Q4 / FINAL
+### 5.3 Completing Enrollment
+- Set status to COMPLETED
+- Locks record
 
 ---
 
-### 5.2 Imported Grades (Transferees)
-- Create historical enrollment
-- Assign correct curriculum version
-- Encode grades as IMPORTED
-- Lock immediately
+## PHASE 6 – GRADE MANAGEMENT
 
----
+### 6.1 Grade Encoding
+- Only ACTIVE enrollment
+- Periods: Q1–Q4, FINAL
 
-### 5.3 Grade Locking
-- When school year is closed
-- Grades become read-only
+### 6.2 Imported Grades
+- Status: IMPORTED
+- Source: IMPORTED
+- Immediately locked
+
+### 6.3 Grade Locking
+- On completion or year close
 - Unlock requires admin + audit log
 
 ---
 
-## PHASE 6 – DOCUMENT MANAGEMENT
+## PHASE 7 – DOCUMENT MANAGEMENT
 
-- Upload SF9
-- Upload birth certificate
-- Upload other credentials
-- Documents are read-only after upload
+- Belongs to Student
+- Optionally linked to Enrollment
+- Read-only after upload
 
 ---
 
-## PHASE 7 – SF10 GENERATION (LAST)
+## PHASE 8 – SF10 GENERATION
 
-### 7.1 Generation Logic
-- Fetch all enrollments (sorted by grade level)
+- Fetch enrollments
+- Sort by grade order
 - Fetch grades per enrollment
-- Respect curriculum differences
-- Render dynamically
+- Generate dynamically
 
 ---
 
-### 7.2 Excel Templates
-- One template per curriculum/version
-- Print-ready (A4 / Legal)
-- No manual editing allowed
+## PHASE 9 – DASHBOARD & REPORTS
 
----
-
-## PHASE 8 – DASHBOARD & REPORTS
-
-- Enrollment statistics
+- Enrollment stats
 - Missing grades
 - Promotion readiness
-- Exportable reports
+- Exports
 
 ---
 
-## 🔐 RUNTIME SECURITY FLOW
+## 🔐 SECURITY FLOW
 
-1. User logs in
-2. Roles loaded
-3. Permissions resolved
-4. Every action checks permission
-5. Sensitive actions logged in AuditLog
-
----
-
-## ❌ WHAT NOT TO DO
-
-🚫 Store SF10 in database  
-🚫 Allow editing past enrollments  
-🚫 Mix subjects across curricula  
-🚫 Hardcode roles in backend  
-🚫 Encode grades without enrollment  
+1. Login
+2. Resolve roles
+3. Resolve permissions
+4. Check permissions per action
+5. Log sensitive actions
 
 ---
 
-## 🟢 GOLDEN RULE
+## ❌ FORBIDDEN
 
-> **Security first, data second, output last.**
+- Storing SF10
+- Editing past enrollments
+- Mixing curricula
+- Bypassing RBAC
 
 ---
 
+## 🟢 FINAL RULE
+
+**Enrollment is truth. Curriculum defines structure. SF10 is output.**
