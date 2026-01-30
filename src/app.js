@@ -12,6 +12,7 @@ import schoolYearRoutes from './routes/schoolYear.route.js';
 import sectionRoutes from './routes/section.route.js';
 import studentRoutes from './routes/student.route.js';
 import subjectRoutes from './routes/subject.route.js';
+import teacherRoutes from './routes/teacher.route.js';
 import userRoutes from './routes/user.route.js';
 
 /* ============================
@@ -54,6 +55,7 @@ app.use('/api/subjects', subjectRoutes);
 app.use('/api/students', studentRoutes);
 app.use('/api/enrollments', enrollmentRoutes);
 app.use('/api/sections', sectionRoutes);
+app.use('/api/teachers', teacherRoutes);
 /* ============================
    NOT FOUND
 ============================ */
