@@ -30,19 +30,18 @@ adviserId (number, optional) – User ID of the section adviser
 
 Success Response (201)
 {
-  "success": true,
-  "message": "Section created successfully",
-  "data": {
-    "id": 7,
-    "name": "A",
-    "gradeLevelId": 4,
-    "schoolYearId": 3,
-    "adviserId": 12,
-    "createdAt": "2026-01-30T08:00:00.000Z",
-    "updatedAt": "2026-01-30T08:00:00.000Z"
-  }
+    "success": true,
+    "message": "Section created successfully",
+    "data": {
+        "id": 1,
+        "name": "Tae",
+        "gradeLevelId": 1,
+        "schoolYearId": 1,
+        "adviserId": 1,
+        "createdAt": "2026-01-30T10:07:54.151Z",
+        "updatedAt": "2026-01-30T10:07:54.151Z"
+    }
 }
-
 Error Response (409)
 {
   "success": false,
