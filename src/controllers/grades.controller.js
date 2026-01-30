@@ -1,10 +1,32 @@
 import {
+  getAllowedGradingPeriodsService,
   getGradesByEnrollmentService,
   upsertGradesService,
 } from '../services/grades.service.js';
 
 /* =========================
-   VIEW GRADES
+   GET ALLOWED GRADING PERIODS
+   (for dropdowns)
+========================= */
+export const getAllowedGradingPeriods = async (req, res) => {
+  try {
+    const periods = await getAllowedGradingPeriodsService();
+
+    res.json({
+      success: true,
+      message: 'Allowed grading periods fetched successfully',
+      data: periods,
+    });
+  } catch {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch grading periods',
+    });
+  }
+};
+
+/* =========================
+   VIEW GRADES BY ENROLLMENT
 ========================= */
 export const getGradesByEnrollment = async (req, res) => {
   try {
@@ -54,6 +76,11 @@ export const upsertGrades = async (req, res) => {
       ENROLLMENT_NOT_FOUND: 'Enrollment not found',
       NOT_SECTION_ADVISER: 'Only the section adviser can encode grades',
       ENROLLMENT_NOT_ACTIVE: 'Enrollment is not active',
+      INVALID_GRADING_PERIOD: 'Invalid grading period',
+      INVALID_GRADE_VALUE: 'Invalid grade value',
+      INVALID_SUBJECT_FOR_ENROLLMENT: 'Subject does not belong to this enrollment',
+      DUPLICATE_SUBJECT_PERIOD: 'Duplicate subject and period detected',
+      FINAL_NOT_EDITABLE: 'Final grades cannot be edited manually',
     };
 
     res.status(403).json({

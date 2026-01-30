@@ -1,6 +1,7 @@
 import express from 'express';
 
 import {
+  getAllowedGradingPeriods,
   getGradesByEnrollment,
   upsertGrades,
 } from '../controllers/grades.controller.js';
@@ -29,6 +30,13 @@ router.post(
   authenticate,
   authorizePermission('grades.create'),
   upsertGrades
+);
+
+router.get(
+  '/periods',
+  authenticate,
+  authorizePermission('grades.view'),
+  getAllowedGradingPeriods
 );
 
 export default router;
