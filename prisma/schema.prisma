@@ -17,7 +17,7 @@ model User {
   password  String
   fullName  String
   isActive  Boolean  @default(true)
-  deletedAt DateTime?        // 👈 SOFT DELETE
+  deletedAt DateTime?
 
   roles     UserRole[]
   auditLogs AuditLog[]
@@ -33,10 +33,10 @@ model Role {
 
   users        UserRole[]
   permissions  RolePermission[]
-  
-  deletedAt DateTime?  
+
+  deletedAt DateTime?
   createdAt DateTime @default(now())
-  updatedAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Permission {
@@ -47,11 +47,11 @@ model Permission {
   roles RolePermission[]
 
   createdAt DateTime @default(now())
-  updatedAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 /* ============================
-   PIVOT: USER ↔ ROLE
+   USER ↔ ROLE
 ============================ */
 
 model UserRole {
@@ -68,7 +68,7 @@ model UserRole {
 }
 
 /* ============================
-   PIVOT: ROLE ↔ PERMISSION
+   ROLE ↔ PERMISSION
 ============================ */
 
 model RolePermission {
@@ -97,7 +97,7 @@ model Student {
   gender     String
   birthDate  DateTime
   address    String
-  deletedAt  DateTime?        // 👈 SOFT DELETE
+  deletedAt  DateTime?
 
   enrollments Enrollment[]
   documents   Document[]
@@ -118,6 +118,24 @@ model SchoolYear {
   isActive  Boolean @default(false)
 
   enrollments Enrollment[]
+}
+
+/* ============================
+   GRADE LEVELS
+============================ */
+
+model GradeLevel {
+  id        Int     @id @default(autoincrement())
+  code      String  @unique    // G1, G2, SHS-11
+  name      String             // Grade 1, Grade 2
+  order     Int
+  isActive  Boolean @default(true)
+
+  subjects    Subject[]
+  enrollments Enrollment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 /* ============================
@@ -150,14 +168,17 @@ model CurriculumVersion {
 model Subject {
   id                  Int    @id @default(autoincrement())
   curriculumVersionId Int
-  gradeLevel          String
+  gradeLevelId        Int
   code                String
   name                String
 
   curriculumVersion CurriculumVersion @relation(fields: [curriculumVersionId], references: [id])
-  grades             Grade[]
+  gradeLevel        GradeLevel        @relation(fields: [gradeLevelId], references: [id])
 
-  @@unique([curriculumVersionId, gradeLevel, code])
+  grades Grade[]
+
+  @@unique([curriculumVersionId, gradeLevelId, code])
+  @@index([gradeLevelId])
 }
 
 /* ============================
@@ -169,20 +190,23 @@ model Enrollment {
   studentId           Int
   schoolYearId        Int
   curriculumVersionId Int
-  gradeLevel          String
+  gradeLevelId        Int
   section             String?
   status              EnrollmentStatus @default(ACTIVE)
-  deletedAt           DateTime?        // 👈 SOFT DELETE
+  deletedAt           DateTime?
 
   student           Student           @relation(fields: [studentId], references: [id])
   schoolYear        SchoolYear        @relation(fields: [schoolYearId], references: [id])
   curriculumVersion CurriculumVersion @relation(fields: [curriculumVersionId], references: [id])
-  grades            Grade[]
-  documents         Document[]
+  gradeLevel        GradeLevel        @relation(fields: [gradeLevelId], references: [id])
+
+  grades    Grade[]
+  documents Document[]
 
   createdAt DateTime @default(now())
 
   @@unique([studentId, schoolYearId])
+  @@index([gradeLevelId])
 }
 
 enum EnrollmentStatus {
@@ -232,10 +256,10 @@ model Document {
   enrollmentId Int?
   type         String
   fileUrl      String
-  deletedAt    DateTime?        // 👈 SOFT DELETE
+  deletedAt    DateTime?
 
-  student     Student     @relation(fields: [studentId], references: [id])
-  enrollment  Enrollment? @relation(fields: [enrollmentId], references: [id])
+  student    Student     @relation(fields: [studentId], references: [id])
+  enrollment Enrollment? @relation(fields: [enrollmentId], references: [id])
 
   uploadedAt DateTime @default(now())
 }
