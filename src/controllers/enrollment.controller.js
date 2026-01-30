@@ -163,10 +163,15 @@ export const getSubjectsByEnrollment = async (req, res) => {
   } catch (error) {
     const map = {
       ENROLLMENT_NOT_FOUND: 'Enrollment not found',
+      ENROLLMENT_NOT_ACTIVE: 'Enrollment is not active',
       FORBIDDEN: 'You do not have permission to view subjects',
     };
 
-    res.status(error.message === 'ENROLLMENT_NOT_FOUND' ? 404 : 403).json({
+    const statusCode = 
+      error.message === 'ENROLLMENT_NOT_FOUND' ? 404 :
+      error.message === 'ENROLLMENT_NOT_ACTIVE' ? 400 : 403;
+
+    res.status(statusCode).json({
       success: false,
       message: map[error.message] || 'Failed to fetch subjects',
     });
