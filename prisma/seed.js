@@ -43,22 +43,27 @@ const permissions = [
   'enrollment.import',
 
   /* CURRICULUM */
-  'curriculum.create',     // ✅
-  'curriculum.update',     // ✅
-  'curriculum.view',       // ✅
-  'curriculum.lock',       // ✅ (used for closing versions / freezing)
+  'curriculum.create',
+  'curriculum.update',
+  'curriculum.view',
+  'curriculum.lock',
 
   /* CURRICULUM VERSION */
-  'curriculum_version.create', // ✅
-  'curriculum_version.update', // ✅
-  'curriculum_version.view',   // ✅
-  'curriculum_version.lock',   // ✅
+  'curriculum_version.create',
+  'curriculum_version.update',
+  'curriculum_version.view',
+  'curriculum_version.lock',
 
   /* SUBJECTS */
   'subject.create',
   'subject.update',
   'subject.view',
   'subject.lock',
+
+  /* GRADE LEVEL */
+  'grade_level.view',
+  'grade_level.create',
+  'grade_level.update',
 
   /* GRADES */
   'grades.encode',
