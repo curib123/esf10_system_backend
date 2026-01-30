@@ -40,6 +40,7 @@ export const createStudent = async (req, res) => {
 
     res.status(201).json({
       success: true,
+      message: 'Student created successfully',
       data: student,
     });
   } catch (error) {
@@ -66,6 +67,7 @@ export const getStudents = async (req, res) => {
 
     res.json({
       success: true,
+      message: 'Students fetched successfully',
       ...result,
     });
   } catch {
@@ -94,6 +96,7 @@ export const getStudentById = async (req, res) => {
 
     res.json({
       success: true,
+      message: 'Student fetched successfully',
       data: student,
     });
   } catch {
@@ -115,7 +118,7 @@ export const updateStudent = async (req, res) => {
 
     res.json({
       success: true,
-      message: 'Student updated',
+      message: 'Student updated successfully',
       data: student,
     });
   } catch (error) {
@@ -144,7 +147,7 @@ export const archiveStudent = async (req, res) => {
 
     res.json({
       success: true,
-      message: 'Student archived',
+      message: 'Student archived successfully',
     });
   } catch {
     res.status(500).json({
