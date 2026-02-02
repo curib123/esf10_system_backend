@@ -7,8 +7,8 @@ import {
   getQuarterSummary,
   getReportCard,
   upsertGrades,
-} from '../controllers/grades.controller.improved.js';
-import { auth } from '../middleware/auth.middleware.js';
+} from '../controllers/grades.controller.js';
+import { authenticate } from '../middleware/auth.middleware.js';
 
 const router = Router();
 
@@ -17,10 +17,10 @@ const router = Router();
 ========================= */
 
 // Get grading configuration (periods, weights, descriptors)
-router.get('/config', auth, getAllowedGradingPeriods);
+router.get('/config', authenticate, getAllowedGradingPeriods);
 
 // Alias for backwards compatibility
-router.get('/allowed-quarters', auth, getAllowedGradingPeriods);
+router.get('/allowed-quarters', authenticate, getAllowedGradingPeriods);
 
 /* =========================
    ADVISER / ADMIN ROUTES
@@ -29,42 +29,42 @@ router.get('/allowed-quarters', auth, getAllowedGradingPeriods);
 // Get all grades for an enrollment
 router.get(
   '/enrollment/:enrollmentId',
-  auth,
+  authenticate,
   getGradesByEnrollment
 );
 
 // Get final grades only
 router.get(
   '/enrollment/:enrollmentId/final',
-  auth,
+  authenticate,
   getFinalGradesByEnrollment
 );
 
 // Get full report card (comprehensive)
 router.get(
   '/enrollment/:enrollmentId/report-card',
-  auth,
+  authenticate,
   getReportCard
 );
 
 // Get quarter summary/stats for a section (adviser only)
 router.get(
   '/summary',
-  auth,
+  authenticate,
   getQuarterSummary
 );
 
 // Create/update grades (adviser only)
 router.post(
   '/enrollment/:enrollmentId',
-  auth,
+  authenticate,
   upsertGrades
 );
 
 // Also support PUT for idempotent updates
 router.put(
   '/enrollment/:enrollmentId',
-  auth,
+  authenticate,
   upsertGrades
 );
 

@@ -115,7 +115,6 @@ router.patch(
 router.get(
   '/:id/subjects',
   authenticate,
-  authorizePermission(['grades.view', 'enrollment.view']),
   getSubjectsByEnrollment
 );
 

@@ -52,53 +52,969 @@ GET /api/grades/enrollment/12
 
 ```json
 {
-  "success": true,
-  "data": [
-    {
-      "id": 1,
-      "enrollmentId": 12,
-      "subjectId": 3,
-      "period": "Q1",
-      "value": 89,
-      "source": "SYSTEM",
-      "subject": {
-        "id": 3,
-        "code": "MATH",
-        "name": "Mathematics"
-      },
-      "roundedValue": 89,
-      "descriptor": {
-        "min": 85,
-        "max": 89,
-        "descriptor": "Very Satisfactory",
-        "code": "VS"
-      },
-      "remarks": null,
-      "isPassing": true
-    },
-    {
-      "id": 5,
-      "enrollmentId": 12,
-      "subjectId": 3,
-      "period": "FINAL",
-      "value": 88.5,
-      "source": "SYSTEM",
-      "subject": {
-        "id": 3,
-        "code": "MATH",
-        "name": "Mathematics"
-      },
-      "roundedValue": 89,
-      "descriptor": {
-        "min": 85,
-        "max": 89,
-        "descriptor": "Very Satisfactory",
-        "code": "VS"
-      },
-      "remarks": "PASSED",
-      "isPassing": true
-    }
-  ]
+    "success": true,
+    "data": [
+        {
+            "id": 1,
+            "enrollmentId": 1,
+            "subjectId": 1,
+            "period": "Q1",
+            "value": 96,
+            "source": "SYSTEM",
+            "createdAt": "2026-02-02T05:03:17.228Z",
+            "updatedAt": "2026-02-02T05:03:17.228Z",
+            "subject": {
+                "id": 1,
+                "code": "FIL",
+                "name": "Filipino"
+            },
+            "roundedValue": 96,
+            "descriptor": {
+                "min": 90,
+                "max": 100,
+                "descriptor": "Outstanding",
+                "code": "O"
+            },
+            "remarks": null,
+            "isPassing": true
+        },
+        {
+            "id": 2,
+            "enrollmentId": 1,
+            "subjectId": 1,
+            "period": "Q2",
+            "value": 96,
+            "source": "SYSTEM",
+            "createdAt": "2026-02-02T05:03:17.228Z",
+            "updatedAt": "2026-02-02T05:03:17.228Z",
+            "subject": {
+                "id": 1,
+                "code": "FIL",
+                "name": "Filipino"
+            },
+            "roundedValue": 96,
+            "descriptor": {
+                "min": 90,
+                "max": 100,
+                "descriptor": "Outstanding",
+                "code": "O"
+            },
+            "remarks": null,
+            "isPassing": true
+        },
+        {
+            "id": 3,
+            "enrollmentId": 1,
+            "subjectId": 1,
+            "period": "Q3",
+            "value": 97,
+            "source": "SYSTEM",
+            "createdAt": "2026-02-02T05:03:17.228Z",
+            "updatedAt": "2026-02-02T05:03:17.228Z",
+            "subject": {
+                "id": 1,
+                "code": "FIL",
+                "name": "Filipino"
+            },
+            "roundedValue": 97,
+            "descriptor": {
+                "min": 90,
+                "max": 100,
+                "descriptor": "Outstanding",
+                "code": "O"
+            },
+            "remarks": null,
+            "isPassing": true
+        },
+        {
+            "id": 4,
+            "enrollmentId": 1,
+            "subjectId": 1,
+            "period": "Q4",
+            "value": 99,
+            "source": "SYSTEM",
+            "createdAt": "2026-02-02T05:03:17.228Z",
+            "updatedAt": "2026-02-02T05:03:17.228Z",
+            "subject": {
+                "id": 1,
+                "code": "FIL",
+                "name": "Filipino"
+            },
+            "roundedValue": 99,
+            "descriptor": {
+                "min": 90,
+                "max": 100,
+                "descriptor": "Outstanding",
+                "code": "O"
+            },
+            "remarks": null,
+            "isPassing": true
+        },
+        {
+            "id": 5,
+            "enrollmentId": 1,
+            "subjectId": 1,
+            "period": "FINAL",
+            "value": 97,
+            "source": "SYSTEM",
+            "createdAt": "2026-02-02T05:03:17.228Z",
+            "updatedAt": "2026-02-02T05:03:17.228Z",
+            "subject": {
+                "id": 1,
+                "code": "FIL",
+                "name": "Filipino"
+            },
+            "roundedValue": 97,
+            "descriptor": {
+                "min": 90,
+                "max": 100,
+                "descriptor": "Outstanding",
+                "code": "O"
+            },
+            "remarks": "PASSED",
+            "isPassing": true
+        },
+        {
+            "id": 6,
+            "enrollmentId": 1,
+            "subjectId": 2,
+            "period": "Q1",
+            "value": 95,
+            "source": "SYSTEM",
+            "createdAt": "2026-02-02T05:03:17.228Z",
+            "updatedAt": "2026-02-02T05:03:17.228Z",
+            "subject": {
+                "id": 2,
+                "code": "ENG",
+                "name": "English"
+            },
+            "roundedValue": 95,
+            "descriptor": {
+                "min": 90,
+                "max": 100,
+                "descriptor": "Outstanding",
+                "code": "O"
+            },
+            "remarks": null,
+            "isPassing": true
+        },
+        {
+            "id": 7,
+            "enrollmentId": 1,
+            "subjectId": 2,
+            "period": "Q2",
+            "value": 95,
+            "source": "SYSTEM",
+            "createdAt": "2026-02-02T05:03:17.228Z",
+            "updatedAt": "2026-02-02T05:03:17.228Z",
+            "subject": {
+                "id": 2,
+                "code": "ENG",
+                "name": "English"
+            },
+            "roundedValue": 95,
+            "descriptor": {
+                "min": 90,
+                "max": 100,
+                "descriptor": "Outstanding",
+                "code": "O"
+            },
+            "remarks": null,
+            "isPassing": true
+        },
+        {
+            "id": 8,
+            "enrollmentId": 1,
+            "subjectId": 2,
+            "period": "Q3",
+            "value": 92,
+            "source": "SYSTEM",
+            "createdAt": "2026-02-02T05:03:17.228Z",
+            "updatedAt": "2026-02-02T05:03:17.228Z",
+            "subject": {
+                "id": 2,
+                "code": "ENG",
+                "name": "English"
+            },
+            "roundedValue": 92,
+            "descriptor": {
+                "min": 90,
+                "max": 100,
+                "descriptor": "Outstanding",
+                "code": "O"
+            },
+            "remarks": null,
+            "isPassing": true
+        },
+        {
+            "id": 9,
+            "enrollmentId": 1,
+            "subjectId": 2,
+            "period": "Q4",
+            "value": 95,
+            "source": "SYSTEM",
+            "createdAt": "2026-02-02T05:03:17.228Z",
+            "updatedAt": "2026-02-02T05:03:17.228Z",
+            "subject": {
+                "id": 2,
+                "code": "ENG",
+                "name": "English"
+            },
+            "roundedValue": 95,
+            "descriptor": {
+                "min": 90,
+                "max": 100,
+                "descriptor": "Outstanding",
+                "code": "O"
+            },
+            "remarks": null,
+            "isPassing": true
+        },
+        {
+            "id": 10,
+            "enrollmentId": 1,
+            "subjectId": 2,
+            "period": "FINAL",
+            "value": 94,
+            "source": "SYSTEM",
+            "createdAt": "2026-02-02T05:03:17.228Z",
+            "updatedAt": "2026-02-02T05:03:17.228Z",
+            "subject": {
+                "id": 2,
+                "code": "ENG",
+                "name": "English"
+            },
+            "roundedValue": 94,
+            "descriptor": {
+                "min": 90,
+                "max": 100,
+                "descriptor": "Outstanding",
+                "code": "O"
+            },
+            "remarks": "PASSED",
+            "isPassing": true
+        },
+        {
+            "id": 11,
+            "enrollmentId": 1,
+            "subjectId": 3,
+            "period": "Q1",
+            "value": 93,
+            "source": "SYSTEM",
+            "createdAt": "2026-02-02T05:03:17.228Z",
+            "updatedAt": "2026-02-02T05:03:17.228Z",
+            "subject": {
+                "id": 3,
+                "code": "MATH",
+                "name": "Mathematics"
+            },
+            "roundedValue": 93,
+            "descriptor": {
+                "min": 90,
+                "max": 100,
+                "descriptor": "Outstanding",
+                "code": "O"
+            },
+            "remarks": null,
+            "isPassing": true
+        },
+        {
+            "id": 12,
+            "enrollmentId": 1,
+            "subjectId": 3,
+            "period": "Q2",
+            "value": 93,
+            "source": "SYSTEM",
+            "createdAt": "2026-02-02T05:03:17.228Z",
+            "updatedAt": "2026-02-02T05:03:17.228Z",
+            "subject": {
+                "id": 3,
+                "code": "MATH",
+                "name": "Mathematics"
+            },
+            "roundedValue": 93,
+            "descriptor": {
+                "min": 90,
+                "max": 100,
+                "descriptor": "Outstanding",
+                "code": "O"
+            },
+            "remarks": null,
+            "isPassing": true
+        },
+        {
+            "id": 13,
+            "enrollmentId": 1,
+            "subjectId": 3,
+            "period": "Q3",
+            "value": 95,
+            "source": "SYSTEM",
+            "createdAt": "2026-02-02T05:03:17.228Z",
+            "updatedAt": "2026-02-02T05:03:17.228Z",
+            "subject": {
+                "id": 3,
+                "code": "MATH",
+                "name": "Mathematics"
+            },
+            "roundedValue": 95,
+            "descriptor": {
+                "min": 90,
+                "max": 100,
+                "descriptor": "Outstanding",
+                "code": "O"
+            },
+            "remarks": null,
+            "isPassing": true
+        },
+        {
+            "id": 14,
+            "enrollmentId": 1,
+            "subjectId": 3,
+            "period": "Q4",
+            "value": 99,
+            "source": "SYSTEM",
+            "createdAt": "2026-02-02T05:03:17.228Z",
+            "updatedAt": "2026-02-02T05:03:17.228Z",
+            "subject": {
+                "id": 3,
+                "code": "MATH",
+                "name": "Mathematics"
+            },
+            "roundedValue": 99,
+            "descriptor": {
+                "min": 90,
+                "max": 100,
+                "descriptor": "Outstanding",
+                "code": "O"
+            },
+            "remarks": null,
+            "isPassing": true
+        },
+        {
+            "id": 15,
+            "enrollmentId": 1,
+            "subjectId": 3,
+            "period": "FINAL",
+            "value": 95,
+            "source": "SYSTEM",
+            "createdAt": "2026-02-02T05:03:17.228Z",
+            "updatedAt": "2026-02-02T05:03:17.228Z",
+            "subject": {
+                "id": 3,
+                "code": "MATH",
+                "name": "Mathematics"
+            },
+            "roundedValue": 95,
+            "descriptor": {
+                "min": 90,
+                "max": 100,
+                "descriptor": "Outstanding",
+                "code": "O"
+            },
+            "remarks": "PASSED",
+            "isPassing": true
+        },
+        {
+            "id": 16,
+            "enrollmentId": 1,
+            "subjectId": 4,
+            "period": "Q1",
+            "value": 99,
+            "source": "SYSTEM",
+            "createdAt": "2026-02-02T05:03:17.228Z",
+            "updatedAt": "2026-02-02T05:03:17.228Z",
+            "subject": {
+                "id": 4,
+                "code": "SCI",
+                "name": "Science"
+            },
+            "roundedValue": 99,
+            "descriptor": {
+                "min": 90,
+                "max": 100,
+                "descriptor": "Outstanding",
+                "code": "O"
+            },
+            "remarks": null,
+            "isPassing": true
+        },
+        {
+            "id": 17,
+            "enrollmentId": 1,
+            "subjectId": 4,
+            "period": "Q2",
+            "value": 95,
+            "source": "SYSTEM",
+            "createdAt": "2026-02-02T05:03:17.228Z",
+            "updatedAt": "2026-02-02T05:03:17.228Z",
+            "subject": {
+                "id": 4,
+                "code": "SCI",
+                "name": "Science"
+            },
+            "roundedValue": 95,
+            "descriptor": {
+                "min": 90,
+                "max": 100,
+                "descriptor": "Outstanding",
+                "code": "O"
+            },
+            "remarks": null,
+            "isPassing": true
+        },
+        {
+            "id": 18,
+            "enrollmentId": 1,
+            "subjectId": 4,
+            "period": "Q3",
+            "value": 99,
+            "source": "SYSTEM",
+            "createdAt": "2026-02-02T05:03:17.228Z",
+            "updatedAt": "2026-02-02T05:03:17.228Z",
+            "subject": {
+                "id": 4,
+                "code": "SCI",
+                "name": "Science"
+            },
+            "roundedValue": 99,
+            "descriptor": {
+                "min": 90,
+                "max": 100,
+                "descriptor": "Outstanding",
+                "code": "O"
+            },
+            "remarks": null,
+            "isPassing": true
+        },
+        {
+            "id": 19,
+            "enrollmentId": 1,
+            "subjectId": 4,
+            "period": "Q4",
+            "value": 94,
+            "source": "SYSTEM",
+            "createdAt": "2026-02-02T05:03:17.228Z",
+            "updatedAt": "2026-02-02T05:03:17.228Z",
+            "subject": {
+                "id": 4,
+                "code": "SCI",
+                "name": "Science"
+            },
+            "roundedValue": 94,
+            "descriptor": {
+                "min": 90,
+                "max": 100,
+                "descriptor": "Outstanding",
+                "code": "O"
+            },
+            "remarks": null,
+            "isPassing": true
+        },
+        {
+            "id": 20,
+            "enrollmentId": 1,
+            "subjectId": 4,
+            "period": "FINAL",
+            "value": 97,
+            "source": "SYSTEM",
+            "createdAt": "2026-02-02T05:03:17.228Z",
+            "updatedAt": "2026-02-02T05:03:17.228Z",
+            "subject": {
+                "id": 4,
+                "code": "SCI",
+                "name": "Science"
+            },
+            "roundedValue": 97,
+            "descriptor": {
+                "min": 90,
+                "max": 100,
+                "descriptor": "Outstanding",
+                "code": "O"
+            },
+            "remarks": "PASSED",
+            "isPassing": true
+        },
+        {
+            "id": 21,
+            "enrollmentId": 1,
+            "subjectId": 5,
+            "period": "Q1",
+            "value": 96,
+            "source": "SYSTEM",
+            "createdAt": "2026-02-02T05:03:17.228Z",
+            "updatedAt": "2026-02-02T05:03:17.228Z",
+            "subject": {
+                "id": 5,
+                "code": "AP",
+                "name": "Araling Panlipunan"
+            },
+            "roundedValue": 96,
+            "descriptor": {
+                "min": 90,
+                "max": 100,
+                "descriptor": "Outstanding",
+                "code": "O"
+            },
+            "remarks": null,
+            "isPassing": true
+        },
+        {
+            "id": 22,
+            "enrollmentId": 1,
+            "subjectId": 5,
+            "period": "Q2",
+            "value": 96,
+            "source": "SYSTEM",
+            "createdAt": "2026-02-02T05:03:17.228Z",
+            "updatedAt": "2026-02-02T05:03:17.228Z",
+            "subject": {
+                "id": 5,
+                "code": "AP",
+                "name": "Araling Panlipunan"
+            },
+            "roundedValue": 96,
+            "descriptor": {
+                "min": 90,
+                "max": 100,
+                "descriptor": "Outstanding",
+                "code": "O"
+            },
+            "remarks": null,
+            "isPassing": true
+        },
+        {
+            "id": 23,
+            "enrollmentId": 1,
+            "subjectId": 5,
+            "period": "Q3",
+            "value": 92,
+            "source": "SYSTEM",
+            "createdAt": "2026-02-02T05:03:17.228Z",
+            "updatedAt": "2026-02-02T05:03:17.228Z",
+            "subject": {
+                "id": 5,
+                "code": "AP",
+                "name": "Araling Panlipunan"
+            },
+            "roundedValue": 92,
+            "descriptor": {
+                "min": 90,
+                "max": 100,
+                "descriptor": "Outstanding",
+                "code": "O"
+            },
+            "remarks": null,
+            "isPassing": true
+        },
+        {
+            "id": 24,
+            "enrollmentId": 1,
+            "subjectId": 5,
+            "period": "Q4",
+            "value": 96,
+            "source": "SYSTEM",
+            "createdAt": "2026-02-02T05:03:17.228Z",
+            "updatedAt": "2026-02-02T05:03:17.228Z",
+            "subject": {
+                "id": 5,
+                "code": "AP",
+                "name": "Araling Panlipunan"
+            },
+            "roundedValue": 96,
+            "descriptor": {
+                "min": 90,
+                "max": 100,
+                "descriptor": "Outstanding",
+                "code": "O"
+            },
+            "remarks": null,
+            "isPassing": true
+        },
+        {
+            "id": 25,
+            "enrollmentId": 1,
+            "subjectId": 5,
+            "period": "FINAL",
+            "value": 95,
+            "source": "SYSTEM",
+            "createdAt": "2026-02-02T05:03:17.228Z",
+            "updatedAt": "2026-02-02T05:03:17.228Z",
+            "subject": {
+                "id": 5,
+                "code": "AP",
+                "name": "Araling Panlipunan"
+            },
+            "roundedValue": 95,
+            "descriptor": {
+                "min": 90,
+                "max": 100,
+                "descriptor": "Outstanding",
+                "code": "O"
+            },
+            "remarks": "PASSED",
+            "isPassing": true
+        },
+        {
+            "id": 26,
+            "enrollmentId": 1,
+            "subjectId": 6,
+            "period": "Q1",
+            "value": 94,
+            "source": "SYSTEM",
+            "createdAt": "2026-02-02T05:03:17.228Z",
+            "updatedAt": "2026-02-02T05:03:17.228Z",
+            "subject": {
+                "id": 6,
+                "code": "ESP",
+                "name": "Edukasyon sa Pagpapakatao"
+            },
+            "roundedValue": 94,
+            "descriptor": {
+                "min": 90,
+                "max": 100,
+                "descriptor": "Outstanding",
+                "code": "O"
+            },
+            "remarks": null,
+            "isPassing": true
+        },
+        {
+            "id": 27,
+            "enrollmentId": 1,
+            "subjectId": 6,
+            "period": "Q2",
+            "value": 97,
+            "source": "SYSTEM",
+            "createdAt": "2026-02-02T05:03:17.228Z",
+            "updatedAt": "2026-02-02T05:03:17.228Z",
+            "subject": {
+                "id": 6,
+                "code": "ESP",
+                "name": "Edukasyon sa Pagpapakatao"
+            },
+            "roundedValue": 97,
+            "descriptor": {
+                "min": 90,
+                "max": 100,
+                "descriptor": "Outstanding",
+                "code": "O"
+            },
+            "remarks": null,
+            "isPassing": true
+        },
+        {
+            "id": 28,
+            "enrollmentId": 1,
+            "subjectId": 6,
+            "period": "Q3",
+            "value": 98,
+            "source": "SYSTEM",
+            "createdAt": "2026-02-02T05:03:17.228Z",
+            "updatedAt": "2026-02-02T05:03:17.228Z",
+            "subject": {
+                "id": 6,
+                "code": "ESP",
+                "name": "Edukasyon sa Pagpapakatao"
+            },
+            "roundedValue": 98,
+            "descriptor": {
+                "min": 90,
+                "max": 100,
+                "descriptor": "Outstanding",
+                "code": "O"
+            },
+            "remarks": null,
+            "isPassing": true
+        },
+        {
+            "id": 29,
+            "enrollmentId": 1,
+            "subjectId": 6,
+            "period": "Q4",
+            "value": 99,
+            "source": "SYSTEM",
+            "createdAt": "2026-02-02T05:03:17.228Z",
+            "updatedAt": "2026-02-02T05:03:17.228Z",
+            "subject": {
+                "id": 6,
+                "code": "ESP",
+                "name": "Edukasyon sa Pagpapakatao"
+            },
+            "roundedValue": 99,
+            "descriptor": {
+                "min": 90,
+                "max": 100,
+                "descriptor": "Outstanding",
+                "code": "O"
+            },
+            "remarks": null,
+            "isPassing": true
+        },
+        {
+            "id": 30,
+            "enrollmentId": 1,
+            "subjectId": 6,
+            "period": "FINAL",
+            "value": 97,
+            "source": "SYSTEM",
+            "createdAt": "2026-02-02T05:03:17.228Z",
+            "updatedAt": "2026-02-02T05:03:17.228Z",
+            "subject": {
+                "id": 6,
+                "code": "ESP",
+                "name": "Edukasyon sa Pagpapakatao"
+            },
+            "roundedValue": 97,
+            "descriptor": {
+                "min": 90,
+                "max": 100,
+                "descriptor": "Outstanding",
+                "code": "O"
+            },
+            "remarks": "PASSED",
+            "isPassing": true
+        },
+        {
+            "id": 31,
+            "enrollmentId": 1,
+            "subjectId": 7,
+            "period": "Q1",
+            "value": 97,
+            "source": "SYSTEM",
+            "createdAt": "2026-02-02T05:03:17.228Z",
+            "updatedAt": "2026-02-02T05:03:17.228Z",
+            "subject": {
+                "id": 7,
+                "code": "TLE",
+                "name": "Technology and Livelihood Education"
+            },
+            "roundedValue": 97,
+            "descriptor": {
+                "min": 90,
+                "max": 100,
+                "descriptor": "Outstanding",
+                "code": "O"
+            },
+            "remarks": null,
+            "isPassing": true
+        },
+        {
+            "id": 32,
+            "enrollmentId": 1,
+            "subjectId": 7,
+            "period": "Q2",
+            "value": 94,
+            "source": "SYSTEM",
+            "createdAt": "2026-02-02T05:03:17.228Z",
+            "updatedAt": "2026-02-02T05:03:17.228Z",
+            "subject": {
+                "id": 7,
+                "code": "TLE",
+                "name": "Technology and Livelihood Education"
+            },
+            "roundedValue": 94,
+            "descriptor": {
+                "min": 90,
+                "max": 100,
+                "descriptor": "Outstanding",
+                "code": "O"
+            },
+            "remarks": null,
+            "isPassing": true
+        },
+        {
+            "id": 33,
+            "enrollmentId": 1,
+            "subjectId": 7,
+            "period": "Q3",
+            "value": 98,
+            "source": "SYSTEM",
+            "createdAt": "2026-02-02T05:03:17.228Z",
+            "updatedAt": "2026-02-02T05:03:17.228Z",
+            "subject": {
+                "id": 7,
+                "code": "TLE",
+                "name": "Technology and Livelihood Education"
+            },
+            "roundedValue": 98,
+            "descriptor": {
+                "min": 90,
+                "max": 100,
+                "descriptor": "Outstanding",
+                "code": "O"
+            },
+            "remarks": null,
+            "isPassing": true
+        },
+        {
+            "id": 34,
+            "enrollmentId": 1,
+            "subjectId": 7,
+            "period": "Q4",
+            "value": 94,
+            "source": "SYSTEM",
+            "createdAt": "2026-02-02T05:03:17.228Z",
+            "updatedAt": "2026-02-02T05:03:17.228Z",
+            "subject": {
+                "id": 7,
+                "code": "TLE",
+                "name": "Technology and Livelihood Education"
+            },
+            "roundedValue": 94,
+            "descriptor": {
+                "min": 90,
+                "max": 100,
+                "descriptor": "Outstanding",
+                "code": "O"
+            },
+            "remarks": null,
+            "isPassing": true
+        },
+        {
+            "id": 35,
+            "enrollmentId": 1,
+            "subjectId": 7,
+            "period": "FINAL",
+            "value": 96,
+            "source": "SYSTEM",
+            "createdAt": "2026-02-02T05:03:17.228Z",
+            "updatedAt": "2026-02-02T05:03:17.228Z",
+            "subject": {
+                "id": 7,
+                "code": "TLE",
+                "name": "Technology and Livelihood Education"
+            },
+            "roundedValue": 96,
+            "descriptor": {
+                "min": 90,
+                "max": 100,
+                "descriptor": "Outstanding",
+                "code": "O"
+            },
+            "remarks": "PASSED",
+            "isPassing": true
+        },
+        {
+            "id": 36,
+            "enrollmentId": 1,
+            "subjectId": 8,
+            "period": "Q1",
+            "value": 95,
+            "source": "SYSTEM",
+            "createdAt": "2026-02-02T05:03:17.228Z",
+            "updatedAt": "2026-02-02T05:03:17.228Z",
+            "subject": {
+                "id": 8,
+                "code": "MAPEH",
+                "name": "MAPEH (Music, Arts, PE, Health)"
+            },
+            "roundedValue": 95,
+            "descriptor": {
+                "min": 90,
+                "max": 100,
+                "descriptor": "Outstanding",
+                "code": "O"
+            },
+            "remarks": null,
+            "isPassing": true
+        },
+        {
+            "id": 37,
+            "enrollmentId": 1,
+            "subjectId": 8,
+            "period": "Q2",
+            "value": 95,
+            "source": "SYSTEM",
+            "createdAt": "2026-02-02T05:03:17.228Z",
+            "updatedAt": "2026-02-02T05:03:17.228Z",
+            "subject": {
+                "id": 8,
+                "code": "MAPEH",
+                "name": "MAPEH (Music, Arts, PE, Health)"
+            },
+            "roundedValue": 95,
+            "descriptor": {
+                "min": 90,
+                "max": 100,
+                "descriptor": "Outstanding",
+                "code": "O"
+            },
+            "remarks": null,
+            "isPassing": true
+        },
+        {
+            "id": 38,
+            "enrollmentId": 1,
+            "subjectId": 8,
+            "period": "Q3",
+            "value": 99,
+            "source": "SYSTEM",
+            "createdAt": "2026-02-02T05:03:17.228Z",
+            "updatedAt": "2026-02-02T05:03:17.228Z",
+            "subject": {
+                "id": 8,
+                "code": "MAPEH",
+                "name": "MAPEH (Music, Arts, PE, Health)"
+            },
+            "roundedValue": 99,
+            "descriptor": {
+                "min": 90,
+                "max": 100,
+                "descriptor": "Outstanding",
+                "code": "O"
+            },
+            "remarks": null,
+            "isPassing": true
+        },
+        {
+            "id": 39,
+            "enrollmentId": 1,
+            "subjectId": 8,
+            "period": "Q4",
+            "value": 97,
+            "source": "SYSTEM",
+            "createdAt": "2026-02-02T05:03:17.228Z",
+            "updatedAt": "2026-02-02T05:03:17.228Z",
+            "subject": {
+                "id": 8,
+                "code": "MAPEH",
+                "name": "MAPEH (Music, Arts, PE, Health)"
+            },
+            "roundedValue": 97,
+            "descriptor": {
+                "min": 90,
+                "max": 100,
+                "descriptor": "Outstanding",
+                "code": "O"
+            },
+            "remarks": null,
+            "isPassing": true
+        },
+        {
+            "id": 40,
+            "enrollmentId": 1,
+            "subjectId": 8,
+            "period": "FINAL",
+            "value": 97,
+            "source": "SYSTEM",
+            "createdAt": "2026-02-02T05:03:17.228Z",
+            "updatedAt": "2026-02-02T05:03:17.228Z",
+            "subject": {
+                "id": 8,
+                "code": "MAPEH",
+                "name": "MAPEH (Music, Arts, PE, Health)"
+            },
+            "roundedValue": 97,
+            "descriptor": {
+                "min": 90,
+                "max": 100,
+                "descriptor": "Outstanding",
+                "code": "O"
+            },
+            "remarks": "PASSED",
+            "isPassing": true
+        }
+    ]
 }
 ```
 

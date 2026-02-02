@@ -5,7 +5,7 @@ import {
   getQuarterSummaryService,
   getReportCardService,
   upsertGradesService,
-} from '../services/grades.service.improved.js';
+} from '../services/grades.service.js';
 
 /* =========================
    ERROR MAPPING

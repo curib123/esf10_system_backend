@@ -52,45 +52,153 @@ GET /api/grades/enrollment/12/final
 
 ```json
 {
-  "success": true,
-  "data": [
-    {
-      "subject": {
-        "id": 3,
-        "code": "MATH",
-        "name": "Mathematics"
-      },
-      "period": "FINAL",
-      "value": 88.75,
-      "roundedValue": 89,
-      "descriptor": {
-        "min": 85,
-        "max": 89,
-        "descriptor": "Very Satisfactory",
-        "code": "VS"
-      },
-      "remarks": "PASSED",
-      "isPassing": true
-    },
-    {
-      "subject": {
-        "id": 4,
-        "code": "SCI",
-        "name": "Science"
-      },
-      "period": "FINAL",
-      "value": 92.25,
-      "roundedValue": 92,
-      "descriptor": {
-        "min": 90,
-        "max": 100,
-        "descriptor": "Outstanding",
-        "code": "O"
-      },
-      "remarks": "PASSED",
-      "isPassing": true
-    }
-  ]
+    "success": true,
+    "data": [
+        {
+            "subject": {
+                "id": 1,
+                "code": "FIL",
+                "name": "Filipino"
+            },
+            "period": "FINAL",
+            "value": 97,
+            "roundedValue": 97,
+            "descriptor": {
+                "min": 90,
+                "max": 100,
+                "descriptor": "Outstanding",
+                "code": "O"
+            },
+            "remarks": "PASSED",
+            "isPassing": true
+        },
+        {
+            "subject": {
+                "id": 2,
+                "code": "ENG",
+                "name": "English"
+            },
+            "period": "FINAL",
+            "value": 94,
+            "roundedValue": 94,
+            "descriptor": {
+                "min": 90,
+                "max": 100,
+                "descriptor": "Outstanding",
+                "code": "O"
+            },
+            "remarks": "PASSED",
+            "isPassing": true
+        },
+        {
+            "subject": {
+                "id": 3,
+                "code": "MATH",
+                "name": "Mathematics"
+            },
+            "period": "FINAL",
+            "value": 95,
+            "roundedValue": 95,
+            "descriptor": {
+                "min": 90,
+                "max": 100,
+                "descriptor": "Outstanding",
+                "code": "O"
+            },
+            "remarks": "PASSED",
+            "isPassing": true
+        },
+        {
+            "subject": {
+                "id": 4,
+                "code": "SCI",
+                "name": "Science"
+            },
+            "period": "FINAL",
+            "value": 97,
+            "roundedValue": 97,
+            "descriptor": {
+                "min": 90,
+                "max": 100,
+                "descriptor": "Outstanding",
+                "code": "O"
+            },
+            "remarks": "PASSED",
+            "isPassing": true
+        },
+        {
+            "subject": {
+                "id": 5,
+                "code": "AP",
+                "name": "Araling Panlipunan"
+            },
+            "period": "FINAL",
+            "value": 95,
+            "roundedValue": 95,
+            "descriptor": {
+                "min": 90,
+                "max": 100,
+                "descriptor": "Outstanding",
+                "code": "O"
+            },
+            "remarks": "PASSED",
+            "isPassing": true
+        },
+        {
+            "subject": {
+                "id": 6,
+                "code": "ESP",
+                "name": "Edukasyon sa Pagpapakatao"
+            },
+            "period": "FINAL",
+            "value": 97,
+            "roundedValue": 97,
+            "descriptor": {
+                "min": 90,
+                "max": 100,
+                "descriptor": "Outstanding",
+                "code": "O"
+            },
+            "remarks": "PASSED",
+            "isPassing": true
+        },
+        {
+            "subject": {
+                "id": 7,
+                "code": "TLE",
+                "name": "Technology and Livelihood Education"
+            },
+            "period": "FINAL",
+            "value": 96,
+            "roundedValue": 96,
+            "descriptor": {
+                "min": 90,
+                "max": 100,
+                "descriptor": "Outstanding",
+                "code": "O"
+            },
+            "remarks": "PASSED",
+            "isPassing": true
+        },
+        {
+            "subject": {
+                "id": 8,
+                "code": "MAPEH",
+                "name": "MAPEH (Music, Arts, PE, Health)"
+            },
+            "period": "FINAL",
+            "value": 97,
+            "roundedValue": 97,
+            "descriptor": {
+                "min": 90,
+                "max": 100,
+                "descriptor": "Outstanding",
+                "code": "O"
+            },
+            "remarks": "PASSED",
+            "isPassing": true
+        }
+    ]
 }
 ```
 
