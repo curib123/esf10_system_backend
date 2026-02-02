@@ -1,42 +1,71 @@
-import express from 'express';
+import { Router } from 'express';
 
 import {
   getAllowedGradingPeriods,
+  getFinalGradesByEnrollment,
   getGradesByEnrollment,
+  getQuarterSummary,
+  getReportCard,
   upsertGrades,
-} from '../controllers/grades.controller.js';
-import {
-  authenticate,
-  authorizePermission,
-} from '../middleware/auth.middleware.js';
+} from '../controllers/grades.controller.improved.js';
+import { auth } from '../middleware/auth.middleware.js';
 
-const router = express.Router();
+const router = Router();
 
-/**
- * GET /api/grades/enrollment/:enrollmentId
- */
+/* =========================
+   PUBLIC (AUTHENTICATED)
+========================= */
+
+// Get grading configuration (periods, weights, descriptors)
+router.get('/config', auth, getAllowedGradingPeriods);
+
+// Alias for backwards compatibility
+router.get('/allowed-quarters', auth, getAllowedGradingPeriods);
+
+/* =========================
+   ADVISER / ADMIN ROUTES
+========================= */
+
+// Get all grades for an enrollment
 router.get(
   '/enrollment/:enrollmentId',
-  authenticate,
-  authorizePermission('grades.view'),
+  auth,
   getGradesByEnrollment
 );
 
-/**
- * POST /api/grades/enrollment/:enrollmentId
- */
+// Get final grades only
+router.get(
+  '/enrollment/:enrollmentId/final',
+  auth,
+  getFinalGradesByEnrollment
+);
+
+// Get full report card (comprehensive)
+router.get(
+  '/enrollment/:enrollmentId/report-card',
+  auth,
+  getReportCard
+);
+
+// Get quarter summary/stats for a section (adviser only)
+router.get(
+  '/summary',
+  auth,
+  getQuarterSummary
+);
+
+// Create/update grades (adviser only)
 router.post(
   '/enrollment/:enrollmentId',
-  authenticate,
-  authorizePermission('grades.create'),
+  auth,
   upsertGrades
 );
 
-router.get(
-  '/periods',
-  authenticate,
-  authorizePermission('grades.view'),
-  getAllowedGradingPeriods
+// Also support PUT for idempotent updates
+router.put(
+  '/enrollment/:enrollmentId',
+  auth,
+  upsertGrades
 );
 
 export default router;

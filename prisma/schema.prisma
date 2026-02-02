@@ -12,11 +12,11 @@ datasource db {
 ============================ */
 
 model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
+  id        Int       @id @default(autoincrement())
+  email     String    @unique
   password  String
   fullName  String
-  isActive  Boolean  @default(true)
+  isActive  Boolean   @default(true)
   deletedAt DateTime?
 
   roles     UserRole[]
@@ -29,21 +29,21 @@ model User {
 }
 
 model Role {
-  id          Int    @id @default(autoincrement())
-  name        String @unique
+  id          Int     @id @default(autoincrement())
+  name        String  @unique
   description String?
 
-  users        UserRole[]
-  permissions  RolePermission[]
+  users       UserRole[]
+  permissions RolePermission[]
 
   deletedAt DateTime?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 }
 
 model Permission {
-  id          Int    @id @default(autoincrement())
-  code        String @unique
+  id          Int     @id @default(autoincrement())
+  code        String  @unique
   description String?
 
   roles RolePermission[]
@@ -91,8 +91,8 @@ model RolePermission {
 ============================ */
 
 model Student {
-  id         Int      @id @default(autoincrement())
-  lrn        String   @unique
+  id         Int       @id @default(autoincrement())
+  lrn        String    @unique
   firstName  String
   middleName String?
   lastName   String
@@ -121,6 +121,9 @@ model SchoolYear {
 
   enrollments Enrollment[]
   sections    Section[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 /* ============================
@@ -147,11 +150,11 @@ model GradeLevel {
 ============================ */
 
 model Section {
-  id           Int      @id @default(autoincrement())
-  name         String           // A, B, Rose
+  id           Int  @id @default(autoincrement())
+  name         String
   gradeLevelId Int
   schoolYearId Int
-  adviserId    Int?             // ← User.id
+  adviserId    Int?
 
   gradeLevel GradeLevel @relation(fields: [gradeLevelId], references: [id])
   schoolYear SchoolYear @relation(fields: [schoolYearId], references: [id])
@@ -164,6 +167,7 @@ model Section {
 
   @@unique([gradeLevelId, schoolYearId, name])
   @@index([adviserId])
+  @@index([schoolYearId])
 }
 
 /* ============================
@@ -175,6 +179,9 @@ model Curriculum {
   name String
 
   versions CurriculumVersion[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model CurriculumVersion {
@@ -184,9 +191,14 @@ model CurriculumVersion {
   effectiveFrom Int
   effectiveTo   Int?
 
-  curriculum Curriculum @relation(fields: [curriculumId], references: [id])
+  curriculum  Curriculum   @relation(fields: [curriculumId], references: [id])
   subjects    Subject[]
   enrollments Enrollment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([curriculumId])
 }
 
 /* ============================
@@ -199,11 +211,15 @@ model Subject {
   gradeLevelId        Int
   code                String
   name                String
+  order               Int    @default(0)
 
   curriculumVersion CurriculumVersion @relation(fields: [curriculumVersionId], references: [id])
   gradeLevel        GradeLevel        @relation(fields: [gradeLevelId], references: [id])
 
   grades Grade[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([curriculumVersionId, gradeLevelId, code])
   @@index([gradeLevelId])
@@ -214,7 +230,7 @@ model Subject {
 ============================ */
 
 model Enrollment {
-  id                  Int      @id @default(autoincrement())
+  id                  Int              @id @default(autoincrement())
   studentId           Int
   schoolYearId        Int
   curriculumVersionId Int
@@ -233,10 +249,13 @@ model Enrollment {
   documents Document[]
 
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([studentId, schoolYearId])
   @@index([gradeLevelId])
   @@index([sectionId])
+  @@index([schoolYearId])
+  @@index([status])
 }
 
 enum EnrollmentStatus {
@@ -250,17 +269,24 @@ enum EnrollmentStatus {
 ============================ */
 
 model Grade {
-  id           Int      @id @default(autoincrement())
+  id           Int           @id @default(autoincrement())
   enrollmentId Int
   subjectId    Int
   period       GradingPeriod
   value        Float
-  source       GradeSource @default(SYSTEM)
+  source       GradeSource   @default(SYSTEM)
 
-  enrollment Enrollment @relation(fields: [enrollmentId], references: [id])
-  subject    Subject    @relation(fields: [subjectId], references: [id])
+  enrollment Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  subject    Subject    @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([enrollmentId, subjectId, period])
+  @@index([enrollmentId])
+  @@index([subjectId])
+  @@index([period])
+  @@index([enrollmentId, period])
 }
 
 enum GradeSource {
@@ -281,7 +307,7 @@ enum GradingPeriod {
 ============================ */
 
 model Document {
-  id           Int      @id @default(autoincrement())
+  id           Int       @id @default(autoincrement())
   studentId    Int
   enrollmentId Int?
   type         String
@@ -292,6 +318,9 @@ model Document {
   enrollment Enrollment? @relation(fields: [enrollmentId], references: [id])
 
   uploadedAt DateTime @default(now())
+
+  @@index([studentId])
+  @@index([enrollmentId])
 }
 
 /* ============================
@@ -302,6 +331,9 @@ model SystemSetting {
   id    Int    @id @default(autoincrement())
   key   String @unique
   value String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 /* ============================
@@ -316,7 +348,13 @@ model AuditLog {
   entityId  Int?
   oldValue  Json?
   newValue  Json?
+  ipAddress String?
+  userAgent String?
   createdAt DateTime @default(now())
 
   user User? @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([entity, entityId])
+  @@index([createdAt])
 }
