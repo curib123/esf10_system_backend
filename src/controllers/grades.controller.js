@@ -25,21 +25,33 @@ const ERROR_MAP = {
   SECTION_NOT_FOUND: { status: 404, message: 'Section not found' },
 };
 
-const handleError = (res, error) => {
-  const mapped = ERROR_MAP[error.message];
-  if (mapped) {
-    return res.status(mapped.status).json({
-      success: false,
-      message: mapped.message,
-      code: error.message,
-    });
-  }
-  console.error('Grades error:', error);
-  return res.status(500).json({
+export const handleError = (res, error, debug = {}) => {
+  const isDev = process.env.NODE_ENV !== 'production';
+
+  // Known domain errors
+  const knownErrors = {
+    ENROLLMENT_NOT_FOUND: 404,
+    NOT_SECTION_ADVISER: 403,
+    ENROLLMENT_NOT_ACTIVE: 409,
+    EMPTY_GRADES_PAYLOAD: 400,
+    INVALID_GRADE_PAYLOAD: 400,
+    INVALID_GRADING_PERIOD: 400,
+    FINAL_NOT_EDITABLE: 409,
+    DUPLICATE_SUBJECT_PERIOD: 409,
+    INVALID_SUBJECT_FOR_ENROLLMENT: 400,
+  };
+
+  const status = knownErrors[error.message] || 500;
+
+  res.status(status).json({
     success: false,
-    message: 'An unexpected error occurred',
+    error: error.message || 'INTERNAL_SERVER_ERROR',
+    ...(isDev && {
+      debug,
+    }),
   });
 };
+
 
 /* =========================
    GET ALLOWED GRADING PERIODS
@@ -152,21 +164,39 @@ export const getQuarterSummary = async (req, res) => {
    ENCODE / UPDATE GRADES
 ========================= */
 export const upsertGrades = async (req, res) => {
-  try {
-    const enrollmentId = Number(req.params.enrollmentId);
-    const { grades } = req.body;
+  const enrollmentId = Number(req.params.enrollmentId);
+  const { grades } = req.body;
+  const currentUserId = Number(req.user?.userId);
 
+  if (!currentUserId) {
+    return res.status(401).json({
+      success: false,
+      error: 'UNAUTHENTICATED',
+      ...(process.env.NODE_ENV !== 'production' && {
+        debug: { enrollmentId, reqUser: req.user },
+      }),
+    });
+  }
+
+  try {
     await upsertGradesService({
       enrollmentId,
       grades,
-      currentUserId: req.user.id,
+      currentUserId,
     });
 
     res.json({
       success: true,
       message: 'Grades saved successfully. Final grades auto-computed.',
+      ...(process.env.NODE_ENV !== 'production' && {
+        debug: { enrollmentId, currentUserId },
+      }),
     });
   } catch (error) {
-    handleError(res, error);
+    handleError(res, error, {
+      enrollmentId,
+      currentUserId,
+    });
   }
 };
+
