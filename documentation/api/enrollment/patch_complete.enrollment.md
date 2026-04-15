@@ -1,27 +1,56 @@
-5️⃣ Complete Enrollment
-PATCH /api/enrollments/complete/:id
+# PATCH /api/enrollments/complete/:id
 
 Mark an enrollment as completed.
 
-Authorization
+## Authorization
 
-Requires authentication
+- Requires authentication
+- Requires permission: `enrollment.update`
 
-Requires permission: enrollment.update
+## Path Parameters
 
-Path Parameters
-Name	Type	Required
-id	number	Yes
-Example Request
+| Name | Type | Required |
+|---|---|---|
+| `id` | number | Yes |
+
+## Example Request
+
+```text
 PATCH /api/enrollments/complete/12
+```
 
-Success Response
+## Success Response (200)
+
+```json
 {
     "success": true,
     "message": "Enrollment completed successfully"
 }
-Notes
+```
 
-Completed enrollments should be treated as immutable
+## Error Responses
 
-Status is set to COMPLETED
+### Invalid Params (400)
+
+```json
+{
+  "success": false,
+  "message": "Invalid params",
+  "code": "VALIDATION_ERROR"
+}
+```
+
+### Enrollment Not Found (404)
+
+```json
+{
+  "success": false,
+  "message": "Record not found",
+  "code": "RECORD_NOT_FOUND"
+}
+```
+
+## Notes
+
+- The endpoint sets `status` to `COMPLETED`
+- Completed enrollments should be treated as immutable by callers

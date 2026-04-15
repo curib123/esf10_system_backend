@@ -1,20 +1,27 @@
-2️⃣ Get Enrollment by ID
-GET /api/enrollments/:id
+# GET /api/enrollments/:id
 
-Fetch a single enrollment by ID.
+Fetch one enrollment by ID.
 
-Authorization
+## Authorization
 
-Requires authentication
+- Requires authentication
+- Requires permission: `enrollment.view`
 
-Requires permission: enrollment.view
+## Path Parameters
 
-Path Parameters
-Name	Type	Required	Description
-id	number	Yes	Enrollment ID
-Example Request
+| Name | Type | Required | Description |
+|---|---|---|---|
+| `id` | number | Yes | Positive integer enrollment ID |
+
+## Example Request
+
+```text
 GET /api/enrollments/12
+```
 
+## Success Response (200)
+
+```json
 {
     "success": true,
     "message": "Enrollment fetched successfully",
@@ -58,7 +65,7 @@ GET /api/enrollments/12
         "curriculumVersion": {
             "id": 1,
             "curriculumId": 1,
-            "name": "K–12 2025–2026",
+            "name": "K-12 2025-2026",
             "effectiveFrom": 2025,
             "effectiveTo": null
         },
@@ -78,9 +85,25 @@ GET /api/enrollments/12
         }
     }
 }
+```
 
-Error Response (Not Found)
+## Error Responses
+
+### Invalid Params (400)
+
+```json
+{
+  "success": false,
+  "message": "Invalid params",
+  "code": "VALIDATION_ERROR"
+}
+```
+
+### Enrollment Not Found (404)
+
+```json
 {
   "success": false,
   "message": "Enrollment not found"
 }
+```

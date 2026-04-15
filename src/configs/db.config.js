@@ -1,6 +1,15 @@
+import { PrismaPg } from '@prisma/adapter-pg';
+
 import { PrismaClient } from '@prisma/client';
 
-const basePrisma = new PrismaClient();
+const isTestEnv = process.env.NODE_ENV === 'test';
+const adapter = new PrismaPg({
+  connectionString: process.env.DATABASE_URL,
+});
+
+const basePrisma = new PrismaClient({
+  adapter,
+});
 
 /* ================= AUTO SYSTEM ACTIVITY LOGGER ================= */
 const db = basePrisma.$extends({
@@ -9,21 +18,25 @@ const db = basePrisma.$extends({
       async $allOperations({ model, operation, args, query }) {
         const result = await query(args);
 
-        const WRITE_OPS = ['create', 'update', 'delete'];
+        const writeOperations = ['create', 'update', 'delete'];
+        const systemLogDelegate = basePrisma.systemLog;
 
         if (
-          WRITE_OPS.includes(operation) &&
-          model !== 'SystemLog'
+          writeOperations.includes(operation) &&
+          model !== 'SystemLog' &&
+          typeof systemLogDelegate?.create === 'function'
         ) {
           try {
-            await basePrisma.systemLog.create({
+            await systemLogDelegate.create({
               data: {
                 level: 'INFO',
                 message: `${model} ${operation}`,
               },
             });
-          } catch (err) {
-            console.error('⚠️ System log failed:', err);
+          } catch (error) {
+            if (!isTestEnv) {
+              console.error('System log failed:', error);
+            }
           }
         }
 
@@ -37,9 +50,12 @@ const db = basePrisma.$extends({
 const connectDB = async () => {
   try {
     await db.$connect();
-    console.log('✅ Database connected successfully');
+
+    if (!isTestEnv) {
+      console.log('Database connected successfully');
+    }
   } catch (error) {
-    console.error('❌ Failed to connect to database:', error);
+    console.error('Failed to connect to database:', error);
     process.exit(1);
   }
 };
@@ -48,9 +64,12 @@ const connectDB = async () => {
 const disconnectDB = async () => {
   try {
     await db.$disconnect();
-    console.log('🛑 Database disconnected');
+
+    if (!isTestEnv) {
+      console.log('Database disconnected');
+    }
   } catch (error) {
-    console.error('❌ Error disconnecting database:', error);
+    console.error('Error disconnecting database:', error);
   }
 };
 

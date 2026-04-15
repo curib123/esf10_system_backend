@@ -1,21 +1,22 @@
-Toggle User Active Status Endpoint
+# PATCH /api/users/:id/toggle-status
 
-PATCH /api/users/:id/toggle-status
+Toggle a user's `isActive` flag.
 
-Activates or deactivates a user account.
+## Authorization
 
-Authorization
+- Requires authentication
+- Requires the admin role configured by `RBAC_ADMIN_ROLE` (default: `SUPER_ADMIN`)
+- Requires permission: `user.update`
 
-Requires authentication
+## Path Parameters
 
-Requires roles: SUPER_ADMIN
+| Parameter | Type | Description |
+|---|---|---|
+| `id` | number | Positive integer user ID |
 
-Requires permission: user.update
+## Success Response (200)
 
-Path Parameters
-Parameter	Type	Description
-id	number	User ID
-Success Response (200)
+```json
 {
   "success": true,
   "message": "User activated",
@@ -26,23 +27,31 @@ Success Response (200)
     "isActive": true
   }
 }
+```
 
-Error Responses
-Unauthorized (401)
-{
-  "message": "Unauthorized"
-}
+## Error Responses
 
-User Not Found (404)
+### Invalid Params (400)
+
+```json
 {
   "success": false,
-  "message": "User not found"
+  "message": "Invalid params",
+  "code": "VALIDATION_ERROR"
 }
+```
 
-🔒 Notes
+### User Not Found (404)
 
-This endpoint toggles the current isActive value
+```json
+{
+  "success": false,
+  "message": "User not found",
+  "code": "USER_NOT_FOUND"
+}
+```
 
-Passwords are never included in responses
+## Notes
 
-Intended for administrative user management
+- Soft-deleted users are treated as not found
+- Passwords are never included in responses

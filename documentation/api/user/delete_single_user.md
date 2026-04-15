@@ -1,42 +1,56 @@
-Delete User Endpoint
+# DELETE /api/users/:id
 
-DELETE /api/users/:id
+Soft-delete a user by setting `deletedAt` and forcing `isActive` to `false`.
 
-Deletes a user from the system.
+## Authorization
 
-Authorization
+- Requires authentication
+- Requires the admin role configured by `RBAC_ADMIN_ROLE` (default: `SUPER_ADMIN`)
+- Requires permission: `user.delete`
 
-Requires authentication
+## Path Parameters
 
-Requires roles: SUPER_ADMIN
+| Parameter | Type | Description |
+|---|---|---|
+| `id` | number | Positive integer user ID |
 
-Requires permission: user.delete
+## Success Response (200)
 
-Path Parameters
-Parameter	Type	Description
-id	number	User ID
-Success Response (200)
+```json
 {
   "success": true,
-  "message": "User deleted"
+  "message": "User deleted",
+  "data": {
+    "id": 1,
+    "email": "admin@esf10.local",
+    "deletedAt": "2026-04-15T12:00:00.000Z"
+  }
 }
+```
 
-Error Responses
-Unauthorized (401)
-{
-  "message": "Unauthorized"
-}
+## Error Responses
 
-User Not Found (404)
+### Invalid Params (400)
+
+```json
 {
   "success": false,
-  "message": "User not found"
+  "message": "Invalid params",
+  "code": "VALIDATION_ERROR"
 }
+```
 
-🔒 Notes
+### User Not Found (404)
 
-This action is irreversible
+```json
+{
+  "success": false,
+  "message": "Record not found",
+  "code": "RECORD_NOT_FOUND"
+}
+```
 
-Passwords are never included in responses
+## Notes
 
-Intended for administrative use only
+- This is a soft delete, not a hard delete
+- Deleted users are hidden from the user listing and auth lookups

@@ -1,26 +1,27 @@
-Get All Users Endpoint
+# GET /api/users
 
-GET /api/users
+Retrieve a paginated list of active users.
 
-Retrieves a paginated list of all users in the system.
+## Authorization
 
-Authorization
+- Requires authentication
+- Requires the admin role configured by `RBAC_ADMIN_ROLE` (default: `SUPER_ADMIN`)
+- Requires permission: `user.view`
 
-Requires authentication
+## Query Parameters
 
-Requires roles: SUPER_ADMIN
+| Parameter | Type | Description |
+|---|---|---|
+| `page` | number | Page number, minimum `1`, default `1` |
+| `limit` | number | Page size, minimum `1`, maximum `100`, default `10` |
+| `search` | string | Search by email or full name |
+| `isActive` | string | `true` or `false` |
+| `sortBy` | string | `createdAt`, `email`, `fullName`, or `isActive` |
+| `sortOrder` | string | `asc` or `desc` |
 
-Requires permission: user.view
+## Success Response (200)
 
-Query Parameters
-Parameter	Type	Description
-page	number	Page number (default: 1)
-limit	number	Items per page (default: 10)
-search	string	Search by email or full name
-isActive	boolean	Filter by active status
-sortBy	string	Sort field (default: createdAt)
-sortOrder	string	asc or desc (default: desc)
-Success Response (200)
+```json
 {
   "success": true,
   "data": [
@@ -53,36 +54,6 @@ Success Response (200)
           }
         }
       ]
-    },
-    {
-      "id": 2,
-      "email": "registrar@esf10.local",
-      "fullName": "Registrar User",
-      "isActive": true,
-      "createdAt": "2026-01-29T04:00:51.947Z",
-      "roles": [
-        {
-          "role": {
-            "id": 2,
-            "name": "REGISTRAR"
-          }
-        }
-      ]
-    },
-    {
-      "id": 1,
-      "email": "admin@esf10.local",
-      "fullName": "System Admin",
-      "isActive": true,
-      "createdAt": "2026-01-29T04:00:48.407Z",
-      "roles": [
-        {
-          "role": {
-            "id": 1,
-            "name": "SUPER_ADMIN"
-          }
-        }
-      ]
     }
   ],
   "pagination": {
@@ -92,19 +63,40 @@ Success Response (200)
     "totalPages": 1
   }
 }
+```
 
-Error Responses
-Unauthorized (401)
+## Error Responses
+
+### Invalid Query (400)
+
+```json
 {
+  "success": false,
+  "message": "Invalid query",
+  "code": "VALIDATION_ERROR"
+}
+```
+
+### Unauthorized (401)
+
+```json
+{
+  "success": false,
   "message": "Unauthorized"
 }
+```
 
-🔒 Notes
+### Forbidden (403)
 
-Passwords are never included in responses
+```json
+{
+  "success": false,
+  "message": "Forbidden: insufficient role"
+}
+```
 
-Roles are returned as a relation array (roles → role)
+## Notes
 
-Designed for admin user management interfaces
-
-Supports pagination, filtering, and sorting
+- Soft-deleted users are excluded
+- Passwords are never included in responses
+- Sorting is limited to approved fields only

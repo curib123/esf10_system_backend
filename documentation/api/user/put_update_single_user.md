@@ -1,39 +1,42 @@
-Update User Endpoint
+# PUT /api/users/:id
 
-PUT /api/users/:id
+Update an active user. Any field in the request body is optional, but at least one field must be provided.
 
-Updates an existing user. Supports optional password and role updates.
+## Authorization
 
-Authorization
+- Requires authentication
+- Requires the admin role configured by `RBAC_ADMIN_ROLE` (default: `SUPER_ADMIN`)
+- Requires permission: `user.update`
 
-Requires authentication
+## Path Parameters
 
-Requires roles: SUPER_ADMIN
+| Parameter | Type | Description |
+|---|---|---|
+| `id` | number | Positive integer user ID |
 
-Requires permission: user.update
+## Request Body
 
-Request Body
+```json
 {
   "email": "john.doe@esf10.local",
   "fullName": "John Doe",
-  "password": "NewStrongPassword@123",
+  "password": "NewStrongPassword123",
   "isActive": true,
   "roleIds": [2, 3]
 }
+```
 
-Request Body Fields
+## Validation
 
-email (string, optional) – User email
+- `email` must be valid if provided
+- `password` must be strong if provided
+- `fullName` must not be blank if provided
+- `roleIds` must contain positive integer role IDs if provided
+- The body must contain at least one field
 
-fullName (string, optional) – Full name
+## Success Response (200)
 
-password (string, optional) – New password
-
-isActive (boolean, optional) – Activate / deactivate user
-
-roleIds (number[], optional) – Role IDs to assign to the user
-
-Success Response (200)
+```json
 {
   "success": true,
   "message": "User updated successfully",
@@ -45,13 +48,42 @@ Success Response (200)
     "createdAt": "2026-01-29T04:00:48.407Z"
   }
 }
+```
 
-🔒 Security Notes
+## Error Responses
 
-Passwords are hashed before storage
+### Invalid Body (400)
 
-Passwords are never returned in responses
+```json
+{
+  "success": false,
+  "message": "Invalid body",
+  "code": "VALIDATION_ERROR"
+}
+```
 
-Roles are updated only when roleIds is provided
+### User Not Found (404)
 
-Role changes require admin privileges and user.update permission
+```json
+{
+  "success": false,
+  "message": "User not found",
+  "code": "USER_NOT_FOUND"
+}
+```
+
+### Duplicate Email (409)
+
+```json
+{
+  "success": false,
+  "message": "Resource already exists",
+  "code": "UNIQUE_CONSTRAINT"
+}
+```
+
+## Notes
+
+- Passwords are hashed before storage
+- Passwords are never returned
+- Roles are replaced only when `roleIds` is provided

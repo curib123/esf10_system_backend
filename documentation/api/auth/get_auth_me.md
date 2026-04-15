@@ -1,13 +1,19 @@
 # GET /api/auth/me
 
-Get current authenticated user.
+Return the currently authenticated user.
+
+## Authorization
+
+Requires authentication
 
 ## Headers
-```
+
+```text
 Authorization: Bearer <JWT_TOKEN>
 ```
 
 ## Success Response (200)
+
 ```json
 {
     "success": true,
@@ -74,5 +80,26 @@ Authorization: Bearer <JWT_TOKEN>
         ],
         "createdAt": "2026-01-28T16:50:20.441Z"
     }
+}
+```
+
+## Error Responses
+
+### Unauthorized (401)
+
+```json
+{
+  "success": false,
+  "message": "Unauthorized"
+}
+```
+
+### Invalid Token (401)
+
+```json
+{
+  "success": false,
+  "message": "Invalid or expired token",
+  "code": "INVALID_OR_EXPIRED_TOKEN"
 }
 ```

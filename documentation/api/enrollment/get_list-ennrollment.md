@@ -1,26 +1,33 @@
-1️⃣ Get All Enrollments
-GET /api/enrollments
+# GET /api/enrollments
 
-Fetch a paginated list of enrollments with filters and search.
+Fetch a paginated list of enrollments with optional filters and search.
 
-Authorization
+## Authorization
 
-Requires authentication
+- Requires authentication
+- Requires permission: `enrollment.view`
 
-Requires permission: enrollment.view
+## Query Parameters
 
-Query Parameters
-Name	Type	Required	Description
-page	number	No	Page number (default: 1)
-limit	number	No	Items per page (default: 20, max: 50)
-schoolYearId	number	No	Filter by school year
-gradeLevelId	number	No	Filter by grade level
-status	string	No	ACTIVE, COMPLETED, IMPORTED
-sectionId	number	No	Filter by section
-q	string	No	Search by LRN, student name, or section name
-Example Request
+| Name | Type | Required | Description |
+|---|---|---|---|
+| `page` | number | No | Page number, minimum `1`, default `1` |
+| `limit` | number | No | Items per page, minimum `1`, maximum `50`, default `20` |
+| `schoolYearId` | number | No | Filter by school year |
+| `gradeLevelId` | number | No | Filter by grade level |
+| `status` | string | No | `ACTIVE`, `COMPLETED`, or `IMPORTED` |
+| `sectionId` | number | No | Filter by section |
+| `q` | string | No | Search by LRN, student name, or section name |
+
+## Example Request
+
+```text
 GET /api/enrollments?page=1&gradeLevelId=3&sectionId=5&q=Juan
+```
 
+## Success Response (200)
+
+```json
 {
     "success": true,
     "message": "Enrollments fetched successfully",
@@ -70,3 +77,16 @@ GET /api/enrollments?page=1&gradeLevelId=3&sectionId=5&q=Juan
     "page": 1,
     "limit": 20
 }
+```
+
+## Error Responses
+
+### Invalid Query (400)
+
+```json
+{
+  "success": false,
+  "message": "Invalid query",
+  "code": "VALIDATION_ERROR"
+}
+```

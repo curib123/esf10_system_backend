@@ -1,21 +1,22 @@
-Get User by ID Endpoint
+# GET /api/users/:id
 
-GET /api/users/:id
+Retrieve one active user together with assigned roles.
 
-Retrieves a single user along with their assigned roles.
+## Authorization
 
-Authorization
+- Requires authentication
+- Requires the admin role configured by `RBAC_ADMIN_ROLE` (default: `SUPER_ADMIN`)
+- Requires permission: `user.view`
 
-Requires authentication
+## Path Parameters
 
-Requires roles: SUPER_ADMIN
+| Parameter | Type | Description |
+|---|---|---|
+| `id` | number | Positive integer user ID |
 
-Requires permission: user.view
+## Success Response (200)
 
-Path Parameters
-Parameter	Type	Description
-id	number	User ID
-Success Response (200)
+```json
 {
   "success": true,
   "data": {
@@ -37,23 +38,30 @@ Success Response (200)
     ]
   }
 }
+```
 
-Error Responses
-Unauthorized (401)
+## Error Responses
+
+### Invalid Params (400)
+
+```json
 {
-  "message": "Unauthorized"
+  "success": false,
+  "message": "Invalid params",
+  "code": "VALIDATION_ERROR"
 }
+```
 
-User Not Found (404)
+### User Not Found (404)
+
+```json
 {
   "success": false,
   "message": "User not found"
 }
+```
 
-🔒 Notes
+## Notes
 
-Passwords are never included in responses
-
-Roles are returned as a relation array (roles → role)
-
-This endpoint is restricted to administrators
+- Soft-deleted users are excluded
+- Passwords are never returned

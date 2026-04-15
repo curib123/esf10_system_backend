@@ -1,187 +1,183 @@
-# ESF10 System – Updated Application & Development Flow
-*(Aligned with Current Prisma Schema)*
+# ESF10 System Runtime and Data Flow
 
-This document defines the **correct build and runtime flow** of the ESF10 (SF10) system based on the **latest Prisma schema**.
+This document explains how the current backend behaves at runtime and how the major entities relate to one another.
 
----
+## 1. Application Flow
 
-## 🧠 CORE RULES
+At startup the server does this:
 
-- **SF10 is GENERATED, never stored**
-- **Enrollment = Student + School Year**
-- **Only ONE ACTIVE enrollment per student per school year**
-- **Curriculum Versions are immutable once used**
-- **Grades belong to Enrollment, not Student**
-- **Past enrollments are READ-ONLY**
-- **Soft deletes use `deletedAt`**
+1. Load environment variables
+2. Build the Express app
+3. Connect to PostgreSQL through Prisma
+4. Mount API routes
+5. Serve requests
+6. Normalize errors through the global error handler
 
----
+Main entry points:
 
-## PHASE 1 – DATABASE & RBAC FOUNDATION
+- `src/server.js`
+- `src/app.js`
 
-### 1.1 Prisma Migration
-```bash
-npx prisma migrate dev --name init_esf10
+## 2. Request Lifecycle
+
+For most protected endpoints, the request path is:
+
+```text
+Request
+-> authentication middleware
+-> role/permission middleware
+-> request validation middleware
+-> controller
+-> service
+-> Prisma
+-> normalized response
 ```
 
-Creates:
-- Core entities
-- RBAC structure
-- Relations & constraints
-- Prisma Client
+This is the intended pattern for new endpoints too.
 
----
+## 3. High-Level Domain Flow
 
-### 1.2 RBAC Seed
-```bash
-npx prisma db seed
+The current academic flow is:
+
+```text
+SchoolYear
+-> Curriculum
+-> CurriculumVersion
+-> GradeLevel
+-> Subject
+-> Section
+-> Student
+-> Enrollment
+-> Grade
 ```
 
-Seeds:
-- Permissions
-- Roles: SUPER_ADMIN, REGISTRAR, TEACHER, VIEWER
-- Role–Permission mappings
+Additional support entities:
 
----
+- `User`
+- `Role`
+- `Permission`
+- `UserRole`
+- `RolePermission`
+- `Document`
+- `SystemSetting`
+- `AuditLog`
 
-### 1.3 Initial SUPER_ADMIN
-- Create admin user
-- Assign SUPER_ADMIN role
+## 4. Relationship Rules That Matter
 
----
+### Enrollment
 
-## PHASE 2 – SYSTEM CONFIGURATION
+Enrollment is the main transactional academic record.
 
-### 2.1 System Settings
-Configured via `SystemSetting`:
-- School name
-- Address
-- Defaults
+Each enrollment links:
 
-### 2.2 School Year
-- Create school years
-- Exactly ONE active school year
-- Closing locks grades & enrollments
+- one student
+- one school year
+- one curriculum version
+- one grade level
+- optionally one section
 
----
+Important current constraints:
 
-## PHASE 3 – CURRICULUM SETUP
+- only one enrollment per student per school year
+- enrollment status can be `ACTIVE`, `COMPLETED`, or `IMPORTED`
+- grade encoding is only allowed for active enrollments
 
-### 3.1 Curriculum
-Examples:
-- K–12
-- MATATAG
-- Special programs
+### Grades
 
-### 3.2 Curriculum Versions
-- Name
-- Effective years
-- Locked once used
+Grades are attached to enrollments, not directly to students.
 
-### 3.3 Grade Levels
-- Ordered
-- Active/inactive
+Rules currently implemented:
 
-### 3.4 Subjects
-- Per curriculum version & grade level
-- Immutable once grades exist
+- quarter periods are `Q1`, `Q2`, `Q3`, and `Q4`
+- `FINAL` exists but is auto-computed
+- one grade per `(enrollment, subject, period)`
+- subject must belong to the enrollment's curriculum version and grade level
 
----
+### Sections
 
-## PHASE 4 – SECTION MANAGEMENT
+Sections are organizational placement records.
 
-- Sections belong to Grade Level + School Year
-- Optional adviser (Teacher)
-- Unique per year
+Current section behavior:
 
----
+- section belongs to a school year
+- section belongs to a grade level
+- section may have an adviser
+- section name is unique within `(gradeLevelId, schoolYearId)`
 
-## PHASE 5 – STUDENT & ENROLLMENT
+## 5. RBAC Flow
 
-### 5.1 Student Registration
-- Personal info only
-- No grades yet
+Authorization works like this:
 
-### 5.2 Enrollment
-Links:
-- Student
-- School Year
-- Curriculum Version
-- Grade Level
-- Section (optional)
+```text
+User
+-> UserRole
+-> Role
+-> RolePermission
+-> Permission
+```
 
-Rules:
-- One enrollment per student per school year
-- Status: ACTIVE, COMPLETED, IMPORTED
+At login:
 
-### 5.3 Completing Enrollment
-- Set status to COMPLETED
-- Locks record
+1. user is looked up
+2. assigned roles are loaded
+3. permissions are derived from those roles
+4. JWT is issued with `userId`, `roles`, and `permissions`
 
----
+At request time:
 
-## PHASE 6 – GRADE MANAGEMENT
+1. JWT is verified
+2. `req.user` is populated
+3. middleware checks role and/or permissions
 
-### 6.1 Grade Encoding
-- Only ACTIVE enrollment
-- Periods: Q1–Q4, FINAL
+## 6. Soft Delete Flow
 
-### 6.2 Imported Grades
-- Status: IMPORTED
-- Source: IMPORTED
-- Immediately locked
+Some modules use `deletedAt` instead of hard deletes.
 
-### 6.3 Grade Locking
-- On completion or year close
-- Unlock requires admin + audit log
+Current examples:
 
----
+- users
+- students
+- enrollments
+- documents
+- roles
 
-## PHASE 7 – DOCUMENT MANAGEMENT
+Meaning:
 
-- Belongs to Student
-- Optionally linked to Enrollment
-- Read-only after upload
+- records may still exist in the database
+- service queries often filter out deleted records
+- auth and user-management flows already respect this pattern in key places
 
----
+## 7. Current Reporting Flow
 
-## PHASE 8 – SF10 GENERATION
+The backend currently supports these grading/reporting reads:
 
-- Fetch enrollments
-- Sort by grade order
-- Fetch grades per enrollment
-- Generate dynamically
+- grading configuration
+- grades by enrollment
+- final grades by enrollment
+- full report card
+- quarter summary
 
----
+These are reporting and grading support APIs, not SF10 export APIs.
 
-## PHASE 9 – DASHBOARD & REPORTS
+## 8. What Is Not Yet a Finished Runtime Flow
 
-- Enrollment stats
-- Missing grades
-- Promotion readiness
-- Exports
+Do not assume these are complete just because the schema exists:
 
----
+- full document upload lifecycle
+- full audit logging implementation
+- SF10 generation and export
+- finalized system settings management
 
-## 🔐 SECURITY FLOW
+Those areas should be treated as future or partial features until route, service, and test coverage are added.
 
-1. Login
-2. Resolve roles
-3. Resolve permissions
-4. Check permissions per action
-5. Log sensitive actions
+## 9. Operational Rule of Thumb
 
----
+Use this mental model:
 
-## ❌ FORBIDDEN
-
-- Storing SF10
-- Editing past enrollments
-- Mixing curricula
-- Bypassing RBAC
-
----
-
-## 🟢 FINAL RULE
-
-**Enrollment is truth. Curriculum defines structure. SF10 is output.**
+```text
+RBAC guards access
+Master data defines allowed structure
+Enrollment captures academic placement
+Grades describe performance inside that enrollment
+Reports read from enrollment and grade data
+```

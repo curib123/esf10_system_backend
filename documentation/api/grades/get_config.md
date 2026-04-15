@@ -1,36 +1,29 @@
-# 📘 Get Grading Configuration API
+# Get Grading Configuration API
 
-Fetch the grading system configuration including allowed periods, weights, and DepEd descriptors.
+Fetch grading configuration used by the frontend and grading services.
 
-This endpoint provides a **single source of truth** for all grading-related configurations used across the frontend.
+## Intended Use
 
----
-
-## 🎯 Intended Use
-
-- Populate grading period dropdowns (Q1–Q4)
-- Display DepEd grade descriptors in report cards
-- Enforce business rules for editable periods
-- Retrieve quarter weight configurations
-- Build dynamic grading forms
-
----
+- Populate grading period dropdowns
+- Render descriptor legends
+- Enforce editable periods on the client
+- Read quarter weights used for final grade computation
 
 ## Endpoint
 
-```
+```text
 GET /api/grades/config
 ```
 
-**Alias:** `GET /api/grades/allowed-quarters`
+Alias:
 
----
+```text
+GET /api/grades/allowed-quarters
+```
 
 ## Authorization
 
-- Requires authentication
-
----
+Requires authentication
 
 ## Success Response (200)
 
@@ -90,59 +83,8 @@ GET /api/grades/config
 }
 ```
 
----
+## Notes
 
-## Response Fields
-
-| Field | Type | Description |
-|-------|------|-------------|
-| editable | string[] | Grading periods that can be manually encoded |
-| final | string | The final grading period identifier |
-| finalEditable | boolean | Whether FINAL grades can be edited manually |
-| passingGrade | number | Minimum passing grade (DepEd standard: 75) |
-| weights | object | Quarter weight distribution for final grade computation |
-| descriptors | array | DepEd grade descriptors with ranges and codes |
-
----
-
-## Descriptor Fields
-
-| Field | Type | Description |
-|-------|------|-------------|
-| min | number | Minimum grade for this descriptor |
-| max | number | Maximum grade for this descriptor |
-| descriptor | string | Full descriptor text |
-| code | string | Short code (O, VS, S, FS, DNME) |
-
----
-
-## DepEd Grade Scale Reference
-
-Based on **DepEd Order No. 8, s. 2015**:
-
-| Grade Range | Descriptor | Code |
-|-------------|------------|------|
-| 90 - 100 | Outstanding | O |
-| 85 - 89 | Very Satisfactory | VS |
-| 80 - 84 | Satisfactory | S |
-| 75 - 79 | Fairly Satisfactory | FS |
-| 0 - 74 | Did Not Meet Expectations | DNME |
-
----
-
-## 🔒 Business Rules
-
-- Only periods listed in `editable` may be encoded manually
-- FINAL grades are system-computed and cannot be edited
-- Passing grade threshold is **75**
-- Quarter weights can be configured via SystemSetting table
-- Default weights are equal (25% each quarter)
-
----
-
-## 🧠 Notes
-
-- Frontend must not hardcode grading periods or descriptors
-- Use this endpoint to dynamically build all grading UI components
-- Weights can be customized per school requirements
-- Descriptors follow official DepEd standards
+- `FINAL` is system-computed and not manually editable
+- Quarter weights can be overridden by `SystemSetting`
+- This endpoint is the frontend source of truth for grading metadata

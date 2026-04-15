@@ -1,231 +1,160 @@
-# ESF10 System – Complete Development Flow (Updated)
-*(Fully aligned with current Prisma schema, including Section)*
+# ESF10 System Developer Flow
 
-This document defines the **authoritative build and runtime flow** of the ESF10 (SF10) system.
-Follow this order strictly to maintain **data integrity, DepEd compliance, and RBAC security**.
+This document describes the practical development order for the current backend, based on what is already implemented in code.
 
----
+## Goal of This Flow
 
-## 🧠 CORE PRINCIPLES
+Use this when developing new features or onboarding into the project. It follows the actual backend dependencies so features are built in a safe order.
 
-- **SF10 is GENERATED, never stored**
-- **Enrollment is the academic truth**
-- **Grades belong to Enrollment**
-- **Curriculum rules are versioned**
-- **Sections are operational, not academic**
-- **Past data is immutable**
-- **Soft delete uses `deletedAt`**
-- **RBAC is fully data-driven**
+## 1. Foundation First
 
----
+Before building feature APIs, make sure these are working:
 
-## 🥇 1. School Year
+- Environment loading
+- Database connectivity
+- Prisma schema
+- Seed data
+- Authentication
+- RBAC middleware
+- Shared validation and error handling
 
-**Model:** `SchoolYear`
+In this codebase, those foundations live mostly in:
 
-**Fields**
-- `year` (unique)
-- `isActive`
+- `src/configs`
+- `src/middleware`
+- `src/utils`
+- `prisma/schema.prisma`
+- `prisma/seed.js`
 
-**Rules**
-- Exactly **ONE active school year**
-- Inactive school year:
-  - Disallows new enrollments
-  - Locks grade encoding
+## 2. Seed and Access Control
 
----
+The backend assumes RBAC exists before most business features are useful.
 
-## 🥈 2. Curriculum → Curriculum Version
+Build order:
 
-### 2.1 Curriculum
-Represents the **education program**, not the rules.
+1. Permissions
+2. Roles
+3. Role-permission assignments
+4. Users
+5. User-role assignments
+6. Login and `/me`
 
-**Examples**
-- K–12
-- MATATAG
-- Special Program
+Why this comes first:
 
-**Rules**
-- Cannot delete if versions exist
+- Most route groups require authentication
+- Several route groups also require admin role plus permission checks
+- Teacher and grading flows depend on role and permission context
 
----
+## 3. Academic Master Data
 
-### 2.2 Curriculum Version
-Defines the **ruleset for a time period**.
+These records should exist before student transactions:
 
-**Fields**
-- `name`
-- `effectiveFrom`
-- `effectiveTo`
+1. School years
+2. Curricula
+3. Curriculum versions
+4. Grade levels
+5. Subjects
+6. Sections
 
-**Rules**
-- Enrollment references CurriculumVersion
-- Once used → **IMMUTABLE**
-- New school year → new version
+Current dependency notes:
 
----
+- Sections depend on school year and grade level
+- Subjects depend on curriculum version and grade level
+- Enrollments depend on school year, curriculum version, grade level, and optionally section
 
-## 🥉 3. Grade Level
+## 4. Student and Enrollment Layer
 
-**Model:** `GradeLevel`
+Once the master data is ready, the transactional flow is:
 
-**Fields**
-- `code` (unique)
-- `name`
-- `order`
-- `isActive`
+1. Create students
+2. Create enrollments
+3. Assign section placement during enrollment or enrollment update
+4. Complete enrollments when needed
 
-**Rules**
-- Controls SF10 ordering
-- Inactive levels block enrollment
+Rules enforced by the current backend include:
 
----
+- A student must exist and not be soft-deleted
+- School year must be active to create an enrollment
+- Curriculum version must be active
+- Grade level must be active
+- A section must match the enrollment's grade level and school year
+- A student can only have one enrollment per school year
 
-## 🏫 4. Section
+## 5. Teacher Grading Flow
 
-**Model:** `Section`
+The implemented grading flow is:
 
-**Belongs to**
-- GradeLevel
-- SchoolYear
+1. Teacher fetches advised students from `/api/teachers/my-students`
+2. Frontend uses the returned `enrollment.id`
+3. Frontend fetches enrollment subjects or current grades
+4. Adviser upserts Q1 to Q4 grades
+5. System auto-computes `FINAL`
+6. Frontend can fetch final grades, report card, or quarter summary
 
-**Optional**
-- Adviser (`User` with TEACHER role)
+Important current behavior:
 
-**Rules**
-- Unique per (gradeLevel, schoolYear, name)
-- Created ONLY for active school year
-- Reset every school year
-- Cannot delete if enrollments exist
+- Only the section adviser may encode grades
+- Users with `grades.view` can read grades, but not encode them unless they are the adviser
+- `FINAL` is not manually editable
+- Final grades are computed after all quarter grades exist
 
----
+## 6. Validation and Error Handling
 
-## 🧑‍🎓 5. Student
+All new route work should follow the existing pattern:
 
-**Model:** `Student`
+1. Validate params, query, and body at the route layer
+2. Let controllers stay thin
+3. Put domain rules in services
+4. Normalize errors through shared HTTP helpers
 
-**Rules**
-- LRN is immutable
-- Soft delete only
-- Soft-deleted students cannot enroll
+Current files to follow:
 
----
+- `src/middleware/validation.middleware.js`
+- `src/validators/request.schemas.js`
+- `src/utils/http.util.js`
+- `src/utils/request.util.js`
 
-## 🧠 6. Enrollment (CORE TRANSACTION)
+## 7. Testing Flow
 
-**Model:** `Enrollment`
+Use both test layers during development:
 
-**Depends on**
-- Student
-- SchoolYear
-- CurriculumVersion
-- GradeLevel
-- Optional Section
+Fast checks:
 
-**Rules**
-- One enrollment per student per school year
-- Only ACTIVE enrollment accepts grades
-- Status:
-  - ACTIVE
-  - COMPLETED
-  - IMPORTED
-- COMPLETED enrollments are read-only
-
-Enrollment = **academic snapshot**
-
----
-
-## 📊 7. Grade
-
-**Model:** `Grade`
-
-**Rules**
-- Unique per (enrollment, subject, period)
-- Periods: Q1–Q4, FINAL
-- FINAL auto-calculated
-- FINAL is read-only
-- Locked after enrollment completion
-
----
-
-## 📁 8. Document
-
-**Model:** `Document`
-
-**Rules**
-- Belongs to Student
-- Optionally linked to Enrollment
-- Read-only after upload
-- Soft delete only
-
----
-
-## 🔐 9. Auth & RBAC
-
-**Models**
-- User
-- Role
-- Permission
-- UserRole
-- RolePermission
-
-**Rules**
-- Roles are soft-deletable
-- Permissions are permanent
-- All sensitive actions logged
-
----
-
-## ⚙️ 10. System Settings
-
-**Model:** `SystemSetting`
-
-**Rules**
-- Key/value only
-- Cached in memory
-- Used for global flags and grading rules
-
----
-
-## 🧾 11. Audit Log (NO CRUD)
-
-**Model:** `AuditLog`
-
-**Rules**
-- Append-only
-- No update
-- No delete
-- Filter only
-
----
-
-## 🧩 FINAL SYSTEM FLOW
-
-```
-SchoolYear
-   ↓
-Curriculum
-   ↓
-CurriculumVersion
-   ↓
-GradeLevel
-   ↓
-Section
-   ↓
-Student
-   ↓
-Enrollment
-   ↓
-Grade
-   ↓
-Document
+```bash
+npm test
 ```
 
----
+DB-backed flow tests:
 
-## 🟢 GOLDEN RULE
+```bash
+npm run test:db
+```
 
-> **Enrollment defines reality.  
-> Curriculum defines structure.  
-> Section defines placement.  
-> SF10 is pure output.**
+Recommended development rhythm:
+
+1. Update schema or service logic
+2. Add or update request validation
+3. Add fast route/unit coverage
+4. Add DB-backed integration coverage for critical write paths
+5. Update docs
+
+## 8. What To Treat As Planned, Not Finished
+
+These exist conceptually or in schema but are not yet complete end-user modules:
+
+- Document management workflow
+- Full audit log feature set
+- SF10 generation/export pipeline
+- Production-ready system settings management UI/API surface
+
+When building in those areas, treat the Prisma schema as partial groundwork rather than proof that the whole feature is already done.
+
+## 9. Practical Golden Rule
+
+Build in this order:
+
+```text
+RBAC -> master data -> student/enrollment -> grading -> reporting -> export features
+```
+
+If something depends on enrollment, do not design it as if it belongs directly to student records.

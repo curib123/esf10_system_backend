@@ -1,63 +1,34 @@
-Register User Endpoint
+# POST /api/auth/register
 
-POST /api/auth/register
+Create a new user and assign one or more existing roles.
 
-Creates a new user account and assigns one or more roles from the system roles table.
+## Authorization
 
-Authorization
+- Requires authentication
+- Requires the admin role configured by `RBAC_ADMIN_ROLE` (default: `SUPER_ADMIN`)
+- Requires permission: `user.create`
 
-Requires authentication
+## Request Body
 
-Requires roles: SUPER_ADMIN
-
-Requires permission: user.create
-
-Request Body
+```json
 {
   "email": "user@example.com",
   "password": "StrongPass123",
   "fullName": "Juan Dela Cruz",
   "roleIds": [2]
 }
+```
 
-Fields
-Field	Type	Required	Description
-email	string	✅	Valid email address
-password	string	✅	Strong password
-fullName	string	✅	User full name
-roleIds	number[]	✅	Array of role IDs from /api/roles
-Validation Rules
-email
+## Validation
 
-Must be a valid email format
+- `email` must be a valid email address
+- `password` must be at least 8 characters and include uppercase, lowercase, and a number
+- `fullName` is required
+- `roleIds` must contain at least one positive integer
 
-password
+## Success Response (201)
 
-Minimum 8 characters
-
-Must include:
-
-1 uppercase letter
-
-1 lowercase letter
-
-1 number
-
-fullName
-
-Required
-
-Trimmed before storage
-
-roleIds
-
-Must reference existing roles
-
-SUPER_ADMIN role cannot be assigned
-
-At least one role is required
-
-Success Response — 201 Created
+```json
 {
     "success": true,
     "message": "User registered successfully",
@@ -93,33 +64,53 @@ Success Response — 201 Created
         }
     }
 }
-Error Responses
-Status	Message
-400	Email already exists
-400	Invalid email format
-400	Weak password
-400	One or more selected roles do not exist
-400	SUPER_ADMIN role cannot be assigned
-400	Missing required fields
-500	Internal server error
-Notes
+```
 
-Roles are database-driven (no hardcoded roles)
+## Error Responses
 
-Permissions are derived from assigned roles
+### Invalid Body (400)
 
-Passwords are hashed using bcrypt
+```json
+{
+  "success": false,
+  "message": "Invalid body",
+  "code": "VALIDATION_ERROR"
+}
+```
 
-Passwords are never returned
+### Invalid Role Selection (400)
 
-JWT token includes:
+```json
+{
+  "success": false,
+  "message": "One or more selected roles do not exist",
+  "code": "INVALID_ROLE_SELECTION"
+}
+```
 
-userId
+### Email Already Exists (409)
 
-roles
+```json
+{
+  "success": false,
+  "message": "Email already exists",
+  "code": "EMAIL_ALREADY_EXISTS"
+}
+```
 
-permissions
+### Forbidden Role Assignment (403)
 
-Token expiry: 1 day
+```json
+{
+  "success": false,
+  "message": "SUPER_ADMIN role cannot be assigned via register",
+  "code": "FORBIDDEN"
+}
+```
 
-User registration is admin-controlled, not public signup
+## Notes
+
+- Registration is admin-controlled and is not a public signup flow
+- Roles are database-driven
+- Permissions are derived from the assigned roles
+- Passwords are hashed before storage and never returned
