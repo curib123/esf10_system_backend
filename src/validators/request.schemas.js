@@ -3,6 +3,10 @@ import { z } from 'zod';
 const positiveInt = z.coerce.number().int().positive();
 
 const optionalPositiveInt = positiveInt.optional();
+const optionalPositiveIntInput = z.preprocess(
+  (value) => (value === '' || value === null ? undefined : value),
+  positiveInt.optional()
+);
 
 const passwordSchema = z
   .string()
@@ -12,6 +16,14 @@ const passwordSchema = z
   .regex(/[0-9]/, 'Password must include a number');
 
 const nonEmptyString = z.string().trim().min(1, 'This field is required');
+const nonEmptyOptionalString = z.preprocess(
+  (value) => (value === '' || value === null ? undefined : value),
+  z.string().trim().min(1).optional()
+);
+const optionalUrlString = z.preprocess(
+  (value) => (value === '' || value === null ? undefined : value),
+  z.string().trim().url('A valid URL is required').optional()
+);
 
 const positiveIntParam = z.object({
   id: positiveInt,
@@ -19,6 +31,14 @@ const positiveIntParam = z.object({
 
 const enrollmentIdParam = z.object({
   enrollmentId: positiveInt,
+});
+
+const studentIdParam = z.object({
+  studentId: positiveInt,
+});
+
+const keyParam = z.object({
+  key: z.string().trim().min(1, 'key is required'),
 });
 
 export const authLoginSchema = z.object({
@@ -104,3 +124,48 @@ export const gradesUpsertBodySchema = z.object({
     })
   ).min(1, 'At least one grade is required'),
 });
+
+export const documentIdParamSchema = positiveIntParam;
+
+export const documentCreateBodySchema = z.object({
+  studentId: positiveInt,
+  enrollmentId: optionalPositiveIntInput,
+  type: nonEmptyString,
+  fileUrl: optionalUrlString,
+});
+
+export const documentListQuerySchema = z.object({
+  page: positiveInt.optional(),
+  limit: positiveInt.max(100, 'limit must not exceed 100').optional(),
+  studentId: optionalPositiveIntInput,
+  enrollmentId: optionalPositiveIntInput,
+  type: nonEmptyOptionalString,
+  includeDeleted: z.enum(['true', 'false']).optional(),
+});
+
+export const systemSettingKeyParamSchema = keyParam;
+
+export const systemSettingValueSchema = z.object({
+  value: nonEmptyString,
+});
+
+export const systemSettingBulkSchema = z.object({
+  settings: z.array(
+    z.object({
+      key: nonEmptyString,
+      value: nonEmptyString,
+    })
+  ).min(1, 'At least one setting is required'),
+});
+
+export const auditLogListQuerySchema = z.object({
+  page: positiveInt.optional(),
+  limit: positiveInt.max(100, 'limit must not exceed 100').optional(),
+  userId: optionalPositiveIntInput,
+  entity: nonEmptyOptionalString,
+  action: nonEmptyOptionalString,
+  from: nonEmptyOptionalString,
+  to: nonEmptyOptionalString,
+});
+
+export const sf10StudentIdParamSchema = studentIdParam;

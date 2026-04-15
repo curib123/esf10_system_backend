@@ -30,35 +30,35 @@ suite('DB-backed Prisma flows', async (t) => {
   const prisma = dbContext.prisma;
 
   const seed = async () => {
-    const [
-      userCreatePermission,
-      enrollmentCreatePermission,
-    ] = await Promise.all([
+    const permissions = await Promise.all([
+      'user.create',
+      'enrollment.create',
+      'document.upload',
+      'document.view',
+      'document.delete',
+      'system.view',
+      'system.update',
+      'audit.view',
+      'audit.export',
+      'sf10.view',
+      'sf10.generate',
+      'sf10.export',
+    ].map((code) =>
       prisma.permission.upsert({
-        where: {
-          code: 'user.create',
-        },
+        where: { code },
         create: {
-          code: 'user.create',
-          description: 'Create users',
+          code,
+          description: code.replaceAll('.', ' '),
         },
         update: {
-          description: 'Create users',
+          description: code.replaceAll('.', ' '),
         },
-      }),
-      prisma.permission.upsert({
-        where: {
-          code: 'enrollment.create',
-        },
-        create: {
-          code: 'enrollment.create',
-          description: 'Create enrollments',
-        },
-        update: {
-          description: 'Create enrollments',
-        },
-      }),
-    ]);
+      })
+    ));
+
+    const permissionsByCode = Object.fromEntries(
+      permissions.map((permission) => [permission.code, permission])
+    );
 
     const [
       superAdminRole,
@@ -104,16 +104,10 @@ suite('DB-backed Prisma flows', async (t) => {
     ]);
 
     await prisma.rolePermission.createMany({
-      data: [
-        {
-          roleId: superAdminRole.id,
-          permissionId: userCreatePermission.id,
-        },
-        {
-          roleId: superAdminRole.id,
-          permissionId: enrollmentCreatePermission.id,
-        },
-      ],
+      data: Object.values(permissionsByCode).map((permission) => ({
+        roleId: superAdminRole.id,
+        permissionId: permission.id,
+      })),
       skipDuplicates: true,
     });
 
@@ -238,6 +232,7 @@ suite('DB-backed Prisma flows', async (t) => {
   };
 
   let createdEnrollmentId;
+  let createdDocumentId;
 
   await t.test('login flow returns JWT and role metadata from Prisma data', async () => {
     const response = await request(app)
@@ -252,6 +247,7 @@ suite('DB-backed Prisma flows', async (t) => {
     assert.equal(response.body.data.user.email, seeded.adminUser.email);
     assert.deepEqual(response.body.data.user.roles, ['SUPER_ADMIN']);
     assert.ok(response.body.data.user.permissions.includes('user.create'));
+    assert.ok(response.body.data.user.permissions.includes('sf10.export'));
     assert.equal(typeof response.body.data.token, 'string');
   });
 
@@ -357,6 +353,144 @@ suite('DB-backed Prisma flows', async (t) => {
     const finalGrade = storedGrades.find((grade) => grade.period === 'FINAL');
     assert.ok(finalGrade);
     assert.equal(finalGrade.value, 88);
+  });
+
+  await t.test('system settings management persists settings through the API', async () => {
+    const adminToken = await loginAndGetToken(seeded.adminUser.email, 'AdminPass123');
+
+    const updateResponse = await request(app)
+      .put('/api/system-settings/school_name')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({
+        value: 'Integration National High School',
+      });
+
+    assert.equal(updateResponse.status, 200);
+    assert.equal(updateResponse.body.success, true);
+    assert.equal(updateResponse.body.data.key, 'school_name');
+
+    const bulkResponse = await request(app)
+      .patch('/api/system-settings')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({
+        settings: [
+          { key: 'school_principal', value: 'Principal Integration' },
+          { key: 'school_region', value: 'NCR' },
+        ],
+      });
+
+    assert.equal(bulkResponse.status, 200);
+    assert.equal(bulkResponse.body.success, true);
+    assert.equal(bulkResponse.body.data.length, 2);
+
+    const listResponse = await request(app)
+      .get('/api/system-settings')
+      .set('Authorization', `Bearer ${adminToken}`);
+
+    assert.equal(listResponse.status, 200);
+    assert.ok(listResponse.body.data.some((setting) => setting.key === 'school_name'));
+  });
+
+  await t.test('document lifecycle uploads, lists, fetches, and soft deletes documents', async () => {
+    const adminToken = await loginAndGetToken(seeded.adminUser.email, 'AdminPass123');
+
+    const createResponse = await request(app)
+      .post('/api/documents')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({
+        studentId: seeded.student.id,
+        enrollmentId: createdEnrollmentId,
+        type: 'FORM_137',
+        fileUrl: `https://example.com/files/${uniqueSuffix}.pdf`,
+      });
+
+    assert.equal(createResponse.status, 201);
+    assert.equal(createResponse.body.success, true);
+    createdDocumentId = createResponse.body.data.id;
+
+    const listResponse = await request(app)
+      .get(`/api/documents?studentId=${seeded.student.id}`)
+      .set('Authorization', `Bearer ${adminToken}`);
+
+    assert.equal(listResponse.status, 200);
+    assert.ok(listResponse.body.data.some((document) => document.id === createdDocumentId));
+
+    const singleResponse = await request(app)
+      .get(`/api/documents/${createdDocumentId}`)
+      .set('Authorization', `Bearer ${adminToken}`);
+
+    assert.equal(singleResponse.status, 200);
+    assert.equal(singleResponse.body.data.type, 'FORM_137');
+
+    const deleteResponse = await request(app)
+      .delete(`/api/documents/${createdDocumentId}`)
+      .set('Authorization', `Bearer ${adminToken}`);
+
+    assert.equal(deleteResponse.status, 200);
+    assert.equal(deleteResponse.body.success, true);
+
+    const deletedDocument = await prisma.document.findUnique({
+      where: {
+        id: createdDocumentId,
+      },
+    });
+
+    assert.ok(deletedDocument?.deletedAt);
+  });
+
+  await t.test('sf10 view, generate, and export endpoints return the compiled student record', async () => {
+    const adminToken = await loginAndGetToken(seeded.adminUser.email, 'AdminPass123');
+
+    const viewResponse = await request(app)
+      .get(`/api/sf10/student/${seeded.student.id}`)
+      .set('Authorization', `Bearer ${adminToken}`);
+
+    assert.equal(viewResponse.status, 200);
+    assert.equal(viewResponse.body.data.student.id, seeded.student.id);
+    assert.equal(viewResponse.body.data.academicHistory.length, 1);
+
+    const generateResponse = await request(app)
+      .get(`/api/sf10/student/${seeded.student.id}/generate`)
+      .set('Authorization', `Bearer ${adminToken}`);
+
+    assert.equal(generateResponse.status, 200);
+    assert.equal(generateResponse.body.success, true);
+    assert.equal(
+      generateResponse.body.data.schoolProfile.school_name,
+      'Integration National High School'
+    );
+
+    const exportResponse = await request(app)
+      .get(`/api/sf10/student/${seeded.student.id}/export`)
+      .set('Authorization', `Bearer ${adminToken}`);
+
+    assert.equal(exportResponse.status, 200);
+    assert.match(
+      exportResponse.headers['content-disposition'],
+      /attachment; filename="sf10-/
+    );
+    assert.match(exportResponse.text, /Integration National High School/);
+  });
+
+  await t.test('audit log endpoints expose recorded write and sf10 events', async () => {
+    const adminToken = await loginAndGetToken(seeded.adminUser.email, 'AdminPass123');
+
+    const listResponse = await request(app)
+      .get('/api/audit-logs?entity=SF10')
+      .set('Authorization', `Bearer ${adminToken}`);
+
+    assert.equal(listResponse.status, 200);
+    assert.ok(listResponse.body.count >= 2);
+    assert.ok(listResponse.body.data.some((log) => log.action === 'GENERATE'));
+
+    const exportResponse = await request(app)
+      .get('/api/audit-logs/export?entity=SF10')
+      .set('Authorization', `Bearer ${adminToken}`);
+
+    assert.equal(exportResponse.status, 200);
+    assert.match(exportResponse.headers['content-disposition'], /audit-logs-/);
+    assert.match(exportResponse.text, /GENERATE/);
+    assert.match(exportResponse.text, /SF10/);
   });
 
   t.after(async () => {

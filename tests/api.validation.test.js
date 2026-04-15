@@ -129,3 +129,58 @@ test('GET /api/grades/summary validates required query params', async () => {
   assert.equal(response.body.code, 'VALIDATION_ERROR');
   assert.ok(response.body.details.some((detail) => detail.path === 'subjectId'));
 });
+
+test('POST /api/documents validates upload metadata before hitting services', async () => {
+  const response = await request(app)
+    .post('/api/documents')
+    .set('Authorization', createAuthHeader({
+      permissions: ['document.upload'],
+    }))
+    .send({
+      studentId: 'bad',
+      type: '',
+    });
+
+  assert.equal(response.status, 400);
+  assert.equal(response.body.code, 'VALIDATION_ERROR');
+  assert.ok(response.body.details.some((detail) => detail.path === 'studentId'));
+});
+
+test('PUT /api/system-settings/:key rejects empty values', async () => {
+  const response = await request(app)
+    .put('/api/system-settings/school_name')
+    .set('Authorization', createAuthHeader({
+      permissions: ['system.update'],
+    }))
+    .send({
+      value: '',
+    });
+
+  assert.equal(response.status, 400);
+  assert.equal(response.body.code, 'VALIDATION_ERROR');
+  assert.ok(response.body.details.some((detail) => detail.path === 'value'));
+});
+
+test('GET /api/audit-logs validates numeric query filters', async () => {
+  const response = await request(app)
+    .get('/api/audit-logs?userId=bad')
+    .set('Authorization', createAuthHeader({
+      permissions: ['audit.view'],
+    }));
+
+  assert.equal(response.status, 400);
+  assert.equal(response.body.code, 'VALIDATION_ERROR');
+  assert.ok(response.body.details.some((detail) => detail.path === 'userId'));
+});
+
+test('GET /api/sf10/student/:studentId validates the route param', async () => {
+  const response = await request(app)
+    .get('/api/sf10/student/not-a-number')
+    .set('Authorization', createAuthHeader({
+      permissions: ['sf10.view'],
+    }));
+
+  assert.equal(response.status, 400);
+  assert.equal(response.body.code, 'VALIDATION_ERROR');
+  assert.ok(response.body.details.some((detail) => detail.path === 'studentId'));
+});

@@ -167,18 +167,27 @@ The backend currently supports these grading/reporting reads:
 - full report card
 - quarter summary
 
-These are reporting and grading support APIs, not SF10 export APIs.
+## 8. Additional Runtime Flows Now Implemented
 
-## 8. What Is Not Yet a Finished Runtime Flow
+The backend now also supports:
 
-Do not assume these are complete just because the schema exists:
+- Document upload, listing, retrieval, and soft delete
+- System settings listing plus single and bulk updates
+- Audit log listing and CSV export
+- SF10 preview, generation, and JSON export
 
-- full document upload lifecycle
-- full audit logging implementation
-- SF10 generation and export
-- finalized system settings management
+These flows use the same request pipeline as the other modules:
 
-Those areas should be treated as future or partial features until route, service, and test coverage are added.
+```text
+Request
+-> authentication middleware
+-> permission middleware
+-> validation middleware
+-> controller
+-> service
+-> Prisma
+-> normalized response
+```
 
 ## 9. Operational Rule of Thumb
 

@@ -23,3 +23,6 @@ export const getEnv = (key, fallback) => {
 export const ADMIN_ROLE = getEnv('RBAC_ADMIN_ROLE', 'SUPER_ADMIN');
 export const JWT_SECRET = getEnv('JWT_SECRET', 'development-only-secret');
 export const BCRYPT_SALT_ROUNDS = Number(getEnv('BCRYPT_SALT_ROUNDS', '10'));
+export const UPLOAD_DRIVER = getEnv('UPLOAD_DRIVER', 'local').toLowerCase();
+export const LOCAL_UPLOADS_DIR = getEnv('LOCAL_UPLOADS_DIR', 'uploads');
+export const LOCAL_UPLOADS_ROUTE = getEnv('LOCAL_UPLOADS_ROUTE', '/uploads');

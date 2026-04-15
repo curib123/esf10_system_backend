@@ -15,15 +15,10 @@ Backend API for ESF10/SF10-related school records management, built with Node.js
 - Enrollment management
 - Grade encoding, final-grade computation, report card, and quarter summary APIs
 - Adviser-focused teacher endpoint for student grading workflows
-
-## What Exists in the Schema But Is Not Yet Fully Exposed
-
-- `Document`
-- `SystemSetting`
-- `AuditLog`
-- Full SF10 generation/export flow
-
-These are part of the data model, but they are not all implemented as complete public API modules yet.
+- Document upload, listing, retrieval, and soft-delete APIs
+- System settings read/update APIs
+- Audit log listing and CSV export APIs
+- SF10 preview, generation, and JSON export APIs
 
 ## Stack
 
@@ -50,6 +45,10 @@ JWT_EXPIRES_IN="1d"
 
 BCRYPT_SALT_ROUNDS=10
 
+UPLOAD_DRIVER=local
+LOCAL_UPLOADS_DIR=uploads
+LOCAL_UPLOADS_ROUTE=/uploads
+
 CLOUDINARY_CLOUD_NAME=
 CLOUDINARY_API_KEY=
 CLOUDINARY_API_SECRET=
@@ -63,7 +62,11 @@ Notes:
 - `DATABASE_URL` is required
 - In Prisma 7, Prisma CLI reads `DATABASE_URL` from `prisma.config.ts`, not from `prisma/schema.prisma`
 - `RBAC_ADMIN_ROLE` controls which role can access admin-only routes
-- Cloudinary config is present, but document upload flows are not yet a complete public feature
+- Upload storage is selected with `UPLOAD_DRIVER`
+- Supported values are `local` and `cloudinary`
+- The system uses one upload driver at a time, not both simultaneously
+- If `UPLOAD_DRIVER=local`, uploaded files are served from `LOCAL_UPLOADS_ROUTE`
+- If `UPLOAD_DRIVER=cloudinary`, Cloudinary credentials must be configured
 
 ## Getting Started
 
@@ -144,6 +147,7 @@ The app currently mounts these route groups:
 - `/api/roles`
 - `/api/permissions`
 - `/api/users`
+- `/api/documents`
 - `/api/school-years`
 - `/api/curricula`
 - `/api/grade-levels`
@@ -153,6 +157,9 @@ The app currently mounts these route groups:
 - `/api/sections`
 - `/api/teachers`
 - `/api/grades`
+- `/api/system-settings`
+- `/api/audit-logs`
+- `/api/sf10`
 
 Health check:
 
@@ -175,7 +182,7 @@ GET /
 There are two test layers:
 
 - Fast route and utility tests that do not require a live database
-- Real DB-backed integration tests that create an isolated Prisma schema and exercise login, register, enrollment creation, and grade upsert flows
+- Real DB-backed integration tests that create an isolated Prisma schema and exercise login, register, enrollment creation, grade upsert, document lifecycle, system settings, audit logs, and SF10 flows
 
 ## Documentation
 
@@ -187,6 +194,6 @@ There are two test layers:
 
 ## Current Caveats
 
-- Some permissions seeded in `prisma/seed.js` use names that may differ from newer route expectations, so keep seed data and route permission checks aligned
-- Audit logging exists in the schema, but a full audit trail implementation is not complete
-- SF10 generation is still a domain goal, not a finished feature in this backend
+- Multipart document uploads in `cloudinary` mode need valid Cloudinary configuration
+- Upload storage is environment-driven and exclusive, so the same running app instance does not use local and Cloudinary at the same time
+- Audit logging now records write activity and manual SF10 events, but older rows created before this implementation will not contain the same metadata depth

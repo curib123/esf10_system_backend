@@ -11,7 +11,17 @@ const formatZodIssues = (issues) =>
 const validateRequest = (source, schema) => (req, _res, next) => {
   try {
     const parsed = schema.parse(req[source]);
-    req[source] = parsed;
+
+    if (source === 'query' && req.query && typeof req.query === 'object') {
+      for (const key of Object.keys(req.query)) {
+        delete req.query[key];
+      }
+
+      Object.assign(req.query, parsed);
+    } else {
+      req[source] = parsed;
+    }
+
     next();
   } catch (error) {
     if (error instanceof ZodError) {
