@@ -13,6 +13,7 @@ Before building feature APIs, make sure these are working:
 - Environment loading
 - Database connectivity
 - Prisma schema
+- Prisma CLI config
 - Seed data
 - Authentication
 - RBAC middleware
@@ -21,10 +22,17 @@ Before building feature APIs, make sure these are working:
 In this codebase, those foundations live mostly in:
 
 - `src/configs`
+- `prisma.config.ts`
 - `src/middleware`
 - `src/utils`
 - `prisma/schema.prisma`
 - `prisma/seed.js`
+
+Prisma 7 note:
+
+- `DATABASE_URL` for Prisma CLI now lives in `prisma.config.ts`
+- `prisma/schema.prisma` should keep `datasource db { provider = "postgresql" }` without a `url` field
+- Use Node `20.19+` for direct Prisma CLI commands
 
 ## 2. Seed and Access Control
 
@@ -129,6 +137,11 @@ DB-backed flow tests:
 ```bash
 npm run test:db
 ```
+
+CLI/runtime note:
+
+- The repo script for `npm run test:db` already wraps Node `20.19` because Prisma 7 CLI requires it
+- If you run `npx prisma ...` manually, use a shell running Node `20.19+`
 
 Recommended development rhythm:
 

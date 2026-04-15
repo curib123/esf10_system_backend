@@ -18,6 +18,12 @@ Main entry points:
 - `src/server.js`
 - `src/app.js`
 
+Prisma 7 configuration note:
+
+- Runtime database access uses the Prisma client plus the PostgreSQL adapter
+- Prisma CLI configuration now comes from `prisma.config.ts`
+- `prisma/schema.prisma` defines the datasource provider, but the connection URL is no longer stored there
+
 ## 2. Request Lifecycle
 
 For most protected endpoints, the request path is:
@@ -34,6 +40,10 @@ Request
 ```
 
 This is the intended pattern for new endpoints too.
+
+Operational note:
+
+- For manual Prisma CLI work such as `db push`, `generate`, `seed`, or `validate`, use Node `20.19+`
 
 ## 3. High-Level Domain Flow
 

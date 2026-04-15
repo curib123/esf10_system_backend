@@ -61,10 +61,17 @@ RBAC_ADMIN_ROLE=SUPER_ADMIN
 Notes:
 
 - `DATABASE_URL` is required
+- In Prisma 7, Prisma CLI reads `DATABASE_URL` from `prisma.config.ts`, not from `prisma/schema.prisma`
 - `RBAC_ADMIN_ROLE` controls which role can access admin-only routes
 - Cloudinary config is present, but document upload flows are not yet a complete public feature
 
 ## Getting Started
+
+Prisma 7 note:
+
+- Keep the database connection URL in `prisma.config.ts`
+- Do not add `url = env("DATABASE_URL")` back into `prisma/schema.prisma`
+- Use Node `20.19+` when running Prisma CLI commands such as `prisma db push`, `prisma db seed`, `prisma generate`, or `prisma validate`
 
 Install dependencies:
 
@@ -77,6 +84,8 @@ Push the Prisma schema to your database:
 ```bash
 npx prisma db push
 ```
+
+If your local Node version is below `20.19`, upgrade Node first before running Prisma CLI commands.
 
 Seed initial data:
 
@@ -121,6 +130,11 @@ Run DB-backed integration tests:
 ```bash
 npm run test:db
 ```
+
+Notes:
+
+- `npm run test:db` already uses a Node `20.19` wrapper for Prisma 7 CLI compatibility
+- Manual Prisma CLI commands still expect your shell Node version to be `20.19+`
 
 ## API Base Paths
 
@@ -169,6 +183,7 @@ There are two test layers:
 - [documentation/dev_flow.md](esf10/esf10_system_backend/documentation/dev_flow.md)
 - API endpoint docs under [documentation/api](/esf10/esf10_system_backend/documentation/api)
 - Prisma schema at [prisma/schema.prisma](/esf10/esf10_system_backend/prisma/schema.prisma)
+- Prisma CLI config at [prisma.config.ts](/esf10/esf10_system_backend/prisma.config.ts)
 
 ## Current Caveats
 
