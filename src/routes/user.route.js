@@ -1,5 +1,6 @@
 import express from 'express';
 
+import { ADMIN_ROLE } from '../configs/env.config.js';
 import {
   deleteUser,
   getUser,
@@ -12,59 +13,56 @@ import {
   authorizePermission,
   authorizeRole,
 } from '../middleware/auth.middleware.js';
+import {
+  validateBody,
+  validateParams,
+  validateQuery,
+} from '../middleware/validation.middleware.js';
+import {
+  userIdParamSchema,
+  userListQuerySchema,
+  userUpdateBodySchema,
+} from '../validators/request.schemas.js';
 
 const router = express.Router();
-
-/* ============================
-   GLOBAL GUARDS
-============================ */
-const ADMIN_ROLE = process.env.RBAC_ADMIN_ROLE;
-
-if (!ADMIN_ROLE) {
-  throw new Error('RBAC_ADMIN_ROLE is not defined in environment variables');
-}
 
 router.use(authenticate);
 router.use(authorizeRole(ADMIN_ROLE));
 
-/* ============================
-   USER ROUTES
-============================ */
-
-// Get all users (pagination, search, filters)
 router.get(
   '/',
   authorizePermission('user.view'),
+  validateQuery(userListQuerySchema),
   getUsers
 );
 
-// Get single user
 router.get(
   '/:id',
   authorizePermission('user.view'),
+  validateParams(userIdParamSchema),
   getUser
 );
 
-// Update user
 router.put(
   '/:id',
   authorizePermission('user.update'),
+  validateParams(userIdParamSchema),
+  validateBody(userUpdateBodySchema),
   updateUser
 );
 
-// Toggle active / inactive status
 router.patch(
   '/:id/toggle-status',
   authorizePermission('user.update'),
+  validateParams(userIdParamSchema),
   toggleUserActive
 );
 
-// Delete user
 router.delete(
   '/:id',
   authorizePermission('user.delete'),
+  validateParams(userIdParamSchema),
   deleteUser
 );
-
 
 export default router;

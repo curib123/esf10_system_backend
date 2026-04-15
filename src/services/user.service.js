@@ -1,5 +1,24 @@
 import { db } from '../configs/db.config.js';
+import { createHttpError } from '../utils/http.util.js';
 import { hashPassword } from '../utils/password.util.js';
+
+const ALLOWED_SORT_FIELDS = new Set(['createdAt', 'email', 'fullName', 'isActive']);
+const ALLOWED_SORT_ORDERS = new Set(['asc', 'desc']);
+
+const normalizePagination = (page = 1, limit = 10) => {
+  const normalizedPage = Number.isInteger(Number(page)) && Number(page) > 0
+    ? Number(page)
+    : 1;
+  const normalizedLimit = Number.isInteger(Number(limit)) && Number(limit) > 0
+    ? Math.min(Number(limit), 100)
+    : 10;
+
+  return {
+    page: normalizedPage,
+    limit: normalizedLimit,
+    skip: (normalizedPage - 1) * normalizedLimit,
+  };
+};
 
 /* =========================
    GET USERS (PAGINATION)
@@ -12,9 +31,14 @@ export const getUsers = async ({
   sortBy = 'createdAt',
   sortOrder = 'desc',
 }) => {
-  const skip = (page - 1) * limit;
+  const { page: safePage, limit: safeLimit, skip } = normalizePagination(page, limit);
+  const safeSortBy = ALLOWED_SORT_FIELDS.has(sortBy) ? sortBy : 'createdAt';
+  const safeSortOrder = ALLOWED_SORT_ORDERS.has(String(sortOrder).toLowerCase())
+    ? String(sortOrder).toLowerCase()
+    : 'desc';
 
   const where = {
+    deletedAt: null,
     ...(search && {
       OR: [
         { email: { contains: search, mode: 'insensitive' } },
@@ -28,8 +52,8 @@ export const getUsers = async ({
     db.user.findMany({
       where,
       skip,
-      take: Number(limit),
-      orderBy: { [sortBy]: sortOrder },
+      take: safeLimit,
+      orderBy: { [safeSortBy]: safeSortOrder },
       select: {
         id: true,
         email: true,
@@ -49,10 +73,10 @@ export const getUsers = async ({
   return {
     data,
     pagination: {
-      page: Number(page),
-      limit: Number(limit),
+      page: safePage,
+      limit: safeLimit,
       total,
-      totalPages: Math.ceil(total / limit),
+      totalPages: Math.ceil(total / safeLimit),
     },
   };
 };
@@ -61,8 +85,11 @@ export const getUsers = async ({
    GET SINGLE USER
 ========================= */
 export const getUserById = async (id) => {
-  return db.user.findUnique({
-    where: { id },
+  return db.user.findFirst({
+    where: {
+      id,
+      deletedAt: null,
+    },
     select: {
       id: true,
       email: true,
@@ -83,14 +110,26 @@ export const getUserById = async (id) => {
 ========================= */
 export const updateUser = async (id, data) => {
   return db.$transaction(async (tx) => {
+    const existingUser = await tx.user.findFirst({
+      where: {
+        id,
+        deletedAt: null,
+      },
+      select: { id: true },
+    });
+
+    if (!existingUser) {
+      throw createHttpError(404, 'User not found', 'USER_NOT_FOUND');
+    }
+
     const updateData = {};
 
     if (data.email !== undefined) {
-      updateData.email = data.email;
+      updateData.email = data.email.trim().toLowerCase();
     }
 
     if (data.fullName !== undefined) {
-      updateData.fullName = data.fullName;
+      updateData.fullName = data.fullName.trim();
     }
 
     if (data.isActive !== undefined) {
@@ -101,7 +140,6 @@ export const updateUser = async (id, data) => {
       updateData.password = await hashPassword(data.password);
     }
 
-    // Update user basic info
     const user = await tx.user.update({
       where: { id },
       data: updateData,
@@ -114,13 +152,27 @@ export const updateUser = async (id, data) => {
       },
     });
 
-    // Update roles if provided
     if (Array.isArray(data.roleIds)) {
+      const normalizedRoleIds = [...new Set(data.roleIds.map(Number).filter(Number.isInteger))];
+      const roles = normalizedRoleIds.length === 0
+        ? []
+        : await tx.role.findMany({
+            where: {
+              id: { in: normalizedRoleIds },
+              deletedAt: null,
+            },
+            select: { id: true },
+          });
+
+      if (roles.length !== normalizedRoleIds.length) {
+        throw createHttpError(400, 'One or more selected roles do not exist', 'INVALID_ROLE_SELECTION');
+      }
+
       await tx.userRole.deleteMany({ where: { userId: id } });
 
-      if (data.roleIds.length > 0) {
+      if (normalizedRoleIds.length > 0) {
         await tx.userRole.createMany({
-          data: data.roleIds.map((roleId) => ({
+          data: normalizedRoleIds.map((roleId) => ({
             userId: id,
             roleId,
           })),
@@ -140,7 +192,7 @@ export const deleteUser = async (id) => {
     where: { id },
     data: {
       deletedAt: new Date(),
-      isActive: false, // 👈 optional but recommended
+      isActive: false,
     },
     select: {
       id: true,
@@ -156,13 +208,16 @@ export const deleteUser = async (id) => {
    TOGGLE USER ACTIVE STATUS
 ========================= */
 export const toggleUserActive = async (id) => {
-  const user = await db.user.findUnique({
-    where: { id },
+  const user = await db.user.findFirst({
+    where: {
+      id,
+      deletedAt: null,
+    },
     select: { isActive: true },
   });
 
   if (!user) {
-    throw new Error('User not found');
+    throw createHttpError(404, 'User not found', 'USER_NOT_FOUND');
   }
 
   return db.user.update({

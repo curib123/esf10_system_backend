@@ -1,6 +1,8 @@
-import jwt from 'jsonwebtoken';
+import '../configs/env.config.js';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'secret';
+import jwt from 'jsonwebtoken';
+import { JWT_SECRET } from '../configs/env.config.js';
+
 const JWT_EXPIRES_IN = '1d';
 
 export const generateToken = (payload) => {

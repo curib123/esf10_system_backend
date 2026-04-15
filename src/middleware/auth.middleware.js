@@ -25,12 +25,26 @@ export const authenticate = (req, res, next) => {
         permissions: []
       }
     */
-    req.user = payload;
+    if (!payload?.userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Unauthorized',
+        code: 'UNAUTHENTICATED',
+      });
+    }
+
+    req.user = {
+      ...payload,
+      id: payload.userId,
+      roles: Array.isArray(payload.roles) ? payload.roles : [],
+      permissions: Array.isArray(payload.permissions) ? payload.permissions : [],
+    };
     next();
   } catch (err) {
     return res.status(401).json({
       success: false,
       message: 'Invalid or expired token',
+      code: 'INVALID_OR_EXPIRED_TOKEN',
     });
   }
 };

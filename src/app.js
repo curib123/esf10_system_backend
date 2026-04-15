@@ -1,3 +1,5 @@
+import './configs/env.config.js';
+
 import cors from 'cors';
 import express from 'express';
 import morgan from 'morgan';
@@ -15,6 +17,7 @@ import studentRoutes from './routes/student.route.js';
 import subjectRoutes from './routes/subject.route.js';
 import teacherRoutes from './routes/teacher.route.js';
 import userRoutes from './routes/user.route.js';
+import { normalizeError } from './utils/http.util.js';
 
 /* ============================
    APP SETUP
@@ -28,7 +31,7 @@ app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: false }));
 
-if (process.env.NODE_ENV !== 'production') {
+if (!['production', 'test'].includes(process.env.NODE_ENV)) {
   app.use(morgan('dev'));
 }
 
@@ -38,7 +41,7 @@ if (process.env.NODE_ENV !== 'production') {
 app.get('/', (_, res) => {
   res.status(200).json({
     success: true,
-    message: 'ESF10 API is running 🚀',
+    message: 'ESF10 API is running',
   });
 });
 
@@ -58,6 +61,7 @@ app.use('/api/enrollments', enrollmentRoutes);
 app.use('/api/sections', sectionRoutes);
 app.use('/api/teachers', teacherRoutes);
 app.use('/api/grades', gradeRoutes);
+
 /* ============================
    NOT FOUND
 ============================ */
@@ -72,11 +76,16 @@ app.use((_, res) => {
    ERROR HANDLER
 ============================ */
 app.use((err, _req, res, _next) => {
-  console.error('🔥 ERROR:', err);
+  const normalized = normalizeError(err);
+  if (normalized.status >= 500) {
+    console.error('ERROR:', err);
+  }
 
-  res.status(err.status || 500).json({
+  res.status(normalized.status).json({
     success: false,
-    message: err.message || 'Internal Server Error',
+    message: normalized.message,
+    code: normalized.code,
+    ...(normalized.details ? { details: normalized.details } : {}),
   });
 });
 

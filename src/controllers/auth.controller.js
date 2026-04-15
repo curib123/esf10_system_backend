@@ -1,4 +1,6 @@
 import * as AuthService from '../services/auth.service.js';
+import { sendError } from '../utils/http.util.js';
+import { getAuthenticatedUserId } from '../utils/request.util.js';
 
 /* ============================
    REGISTER (RBAC-DRIVEN)
@@ -20,10 +22,7 @@ export const register = async (req, res) => {
       data,
     });
   } catch (error) {
-    res.status(400).json({
-      success: false,
-      message: error.message,
-    });
+    sendError(res, error, 'Failed to register user');
   }
 };
 
@@ -45,10 +44,7 @@ export const login = async (req, res) => {
       data,
     });
   } catch (error) {
-    res.status(401).json({
-      success: false,
-      message: error.message,
-    });
+    sendError(res, error, 'Failed to log in');
   }
 };
 
@@ -57,7 +53,7 @@ export const login = async (req, res) => {
 ============================ */
 export const me = async (req, res) => {
   try {
-    const userId = req.user.userId;
+    const userId = getAuthenticatedUserId(req);
 
     const user = await AuthService.getMe(userId);
 
@@ -66,9 +62,6 @@ export const me = async (req, res) => {
       data: user,
     });
   } catch (error) {
-    res.status(401).json({
-      success: false,
-      message: error.message,
-    });
+    sendError(res, error, 'Failed to fetch current user');
   }
 };

@@ -1,6 +1,8 @@
+import '../configs/env.config.js';
+
 import fs from 'fs';
 
-import cloudinary from '../config/cloudinary.config.js';
+import cloudinary from '../configs/cloudinary.config.js';
 
 const ROOT = process.env.CLOUDINARY_ROOT_FOLDER || 'esf10_system';
 
@@ -14,15 +16,16 @@ export const uploadToCloudinary = async (
 ) => {
   const folder = `${ROOT}/${subFolder}`;
 
-  const result = await cloudinary.uploader.upload(file.path, {
-    folder,
-    resource_type: resourceType,
-  });
+  try {
+    const result = await cloudinary.uploader.upload(file.path, {
+      folder,
+      resource_type: resourceType,
+    });
 
-  // always cleanup temp file
-  if (file?.path && fs.existsSync(file.path)) {
-    fs.unlinkSync(file.path);
+    return result.secure_url;
+  } finally {
+    if (file?.path && fs.existsSync(file.path)) {
+      fs.unlinkSync(file.path);
+    }
   }
-
-  return result.secure_url;
 };

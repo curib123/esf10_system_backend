@@ -1,6 +1,9 @@
-import bcrypt from 'bcrypt';
+import '../configs/env.config.js';
 
-const SALT_ROUNDS = Number(process.env.BCRYPT_SALT_ROUNDS) || 10;
+import bcrypt from 'bcrypt';
+import { BCRYPT_SALT_ROUNDS } from '../configs/env.config.js';
+
+const SALT_ROUNDS = BCRYPT_SALT_ROUNDS;
 
 export const hashPassword = async (password) => {
   if (!password) {

@@ -1,4 +1,6 @@
 import * as userService from '../services/user.service.js';
+import { sendError } from '../utils/http.util.js';
+import { parsePositiveInt } from '../utils/request.util.js';
 
 /* =========================
    GET USERS
@@ -8,10 +10,7 @@ export const getUsers = async (req, res) => {
     const result = await userService.getUsers(req.query);
     res.json({ success: true, ...result });
   } catch (err) {
-    res.status(500).json({
-      success: false,
-      message: err.message,
-    });
+    sendError(res, err, 'Failed to fetch users');
   }
 };
 
@@ -20,7 +19,7 @@ export const getUsers = async (req, res) => {
 ========================= */
 export const getUser = async (req, res) => {
   try {
-    const user = await userService.getUserById(Number(req.params.id));
+    const user = await userService.getUserById(parsePositiveInt(req.params.id, 'userId'));
 
     if (!user) {
       return res.status(404).json({
@@ -31,10 +30,7 @@ export const getUser = async (req, res) => {
 
     res.json({ success: true, data: user });
   } catch (err) {
-    res.status(500).json({
-      success: false,
-      message: err.message,
-    });
+    sendError(res, err, 'Failed to fetch user');
   }
 };
 
@@ -43,7 +39,7 @@ export const getUser = async (req, res) => {
 ========================= */
 export const updateUser = async (req, res) => {
   try {
-    const userId = Number(req.params.id);
+    const userId = parsePositiveInt(req.params.id, 'userId');
 
     const user = await userService.updateUser(userId, req.body);
 
@@ -53,10 +49,7 @@ export const updateUser = async (req, res) => {
       data: user,
     });
   } catch (err) {
-    res.status(400).json({
-      success: false,
-      message: err.message,
-    });
+    sendError(res, err, 'Failed to update user');
   }
 };
 
@@ -65,7 +58,7 @@ export const updateUser = async (req, res) => {
 ========================= */
 export const deleteUser = async (req, res) => {
   try {
-    const userId = Number(req.params.id);
+    const userId = parsePositiveInt(req.params.id, 'userId');
 
     const user = await userService.deleteUser(userId);
 
@@ -86,10 +79,7 @@ export const deleteUser = async (req, res) => {
       },
     });
   } catch (err) {
-    res.status(400).json({
-      success: false,
-      message: err.message,
-    });
+    sendError(res, err, 'Failed to delete user');
   }
 };
 
@@ -100,7 +90,7 @@ export const deleteUser = async (req, res) => {
 export const toggleUserActive = async (req, res) => {
   try {
     const user = await userService.toggleUserActive(
-      Number(req.params.id)
+      parsePositiveInt(req.params.id, 'userId')
     );
 
     res.json({
@@ -109,9 +99,6 @@ export const toggleUserActive = async (req, res) => {
       data: user,
     });
   } catch (err) {
-    res.status(404).json({
-      success: false,
-      message: err.message,
-    });
+    sendError(res, err, 'Failed to toggle user status');
   }
 };

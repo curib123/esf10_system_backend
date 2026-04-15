@@ -24,6 +24,10 @@ export const getMyAdvisedStudentsService = async ({
       select: { id: true },
     });
     activeSchoolYearId = activeSY?.id;
+
+    if (!activeSchoolYearId) {
+      throw new Error('NO_ACTIVE_SCHOOL_YEAR');
+    }
   }
 
   /* =========================
@@ -49,9 +53,9 @@ export const getMyAdvisedStudentsService = async ({
     ? {
         OR: [
           { student: { lrn: { contains: q } } },
-          { student: { firstName: { contains: q } } },
-          { student: { lastName: { contains: q } } },
-          { section: { name: { contains: q } } },
+          { student: { firstName: { contains: q, mode: 'insensitive' } } },
+          { student: { lastName: { contains: q, mode: 'insensitive' } } },
+          { section: { name: { contains: q, mode: 'insensitive' } } },
         ],
       }
     : {};

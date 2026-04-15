@@ -1,4 +1,5 @@
 import { db } from '../configs/db.config.js';
+import { createHttpError } from '../utils/http.util.js';
 import { generateToken } from '../utils/jwt.util.js';
 import {
   comparePassword,
@@ -18,6 +19,14 @@ const isStrongPassword = (password) =>
   /[a-z]/.test(password) &&
   /[0-9]/.test(password);
 
+const buildPermissions = (roles) => [
+  ...new Set(
+    roles.flatMap((role) =>
+      role.permissions.map((rolePermission) => rolePermission.permission.code)
+    )
+  ),
+];
+
 /* ============================
    REGISTER (RBAC-DRIVEN)
 ============================ */
@@ -25,38 +34,52 @@ export const register = async ({
   email,
   password,
   fullName,
-  roleIds, // 👈 array of role IDs
+  roleIds,
 }) => {
-  /* ---------- validation ---------- */
   if (!email || !password || !fullName || !Array.isArray(roleIds) || roleIds.length === 0) {
-    throw new Error('Email, password, full name, and roles are required');
-  }
-
-  email = email.trim().toLowerCase();
-  fullName = fullName.trim();
-
-  if (!isValidEmail(email)) {
-    throw new Error('Invalid email format');
-  }
-
-  if (!isStrongPassword(password)) {
-    throw new Error(
-      'Password must be at least 8 characters and include uppercase, lowercase, and a number'
+    throw createHttpError(
+      400,
+      'Email, password, full name, and roles are required',
+      'INVALID_REGISTER_PAYLOAD'
     );
   }
 
-  const existing = await db.user.findUnique({
-    where: { email },
-  });
+  const normalizedEmail = email.trim().toLowerCase();
+  const normalizedFullName = fullName.trim();
+  const normalizedRoleIds = [...new Set(roleIds.map(Number).filter(Number.isInteger))];
 
-  if (existing) {
-    throw new Error('Email already exists');
+  if (!isValidEmail(normalizedEmail)) {
+    throw createHttpError(400, 'Invalid email format', 'INVALID_EMAIL_FORMAT');
   }
 
-  /* ---------- verify roles ---------- */
+  if (!isStrongPassword(password)) {
+    throw createHttpError(
+      400,
+      'Password must be at least 8 characters and include uppercase, lowercase, and a number',
+      'WEAK_PASSWORD'
+    );
+  }
+
+  if (normalizedRoleIds.length === 0) {
+    throw createHttpError(400, 'At least one valid role is required', 'INVALID_ROLE_SELECTION');
+  }
+
+  const existingUser = await db.user.findFirst({
+    where: {
+      email: normalizedEmail,
+      deletedAt: null,
+    },
+    select: { id: true },
+  });
+
+  if (existingUser) {
+    throw createHttpError(409, 'Email already exists', 'EMAIL_ALREADY_EXISTS');
+  }
+
   const roles = await db.role.findMany({
     where: {
-      id: { in: roleIds },
+      id: { in: normalizedRoleIds },
+      deletedAt: null,
     },
     include: {
       permissions: {
@@ -67,47 +90,41 @@ export const register = async ({
     },
   });
 
-  if (roles.length !== roleIds.length) {
-    throw new Error('One or more selected roles do not exist');
+  if (roles.length !== normalizedRoleIds.length) {
+    throw createHttpError(400, 'One or more selected roles do not exist', 'INVALID_ROLE_SELECTION');
   }
 
-  /* ---------- prevent SUPER_ADMIN assignment ---------- */
-  if (roles.some(r => r.name === 'SUPER_ADMIN')) {
-    throw new Error('SUPER_ADMIN role cannot be assigned via register');
+  if (roles.some((role) => role.name === 'SUPER_ADMIN')) {
+    throw createHttpError(403, 'SUPER_ADMIN role cannot be assigned via register', 'FORBIDDEN');
   }
 
-  /* ---------- create user ---------- */
   const hashedPassword = await hashPassword(password);
 
-  const user = await db.user.create({
-    data: {
-      email,
-      password: hashedPassword,
-      fullName,
-    },
+  const user = await db.$transaction(async (tx) => {
+    const createdUser = await tx.user.create({
+      data: {
+        email: normalizedEmail,
+        password: hashedPassword,
+        fullName: normalizedFullName,
+      },
+    });
+
+    await tx.userRole.createMany({
+      data: roles.map((role) => ({
+        userId: createdUser.id,
+        roleId: role.id,
+      })),
+    });
+
+    return createdUser;
   });
 
-  /* ---------- assign roles ---------- */
-  await db.userRole.createMany({
-    data: roles.map(role => ({
-      userId: user.id,
-      roleId: role.id,
-    })),
-  });
+  const permissions = buildPermissions(roles);
+  const roleNames = roles.map((role) => role.name);
 
-  /* ---------- derive permissions ---------- */
-  const permissions = [
-    ...new Set(
-      roles.flatMap(role =>
-        role.permissions.map(rp => rp.permission.code)
-      )
-    ),
-  ];
-
-  /* ---------- generate token ---------- */
   const token = generateToken({
     userId: user.id,
-    roles: roles.map(r => r.name),
+    roles: roleNames,
     permissions,
   });
 
@@ -117,30 +134,32 @@ export const register = async ({
       id: user.id,
       email: user.email,
       fullName: user.fullName,
-      roles: roles.map(r => r.name),
+      roles: roleNames,
       permissions,
       isActive: user.isActive,
     },
   };
 };
 
-
 /* ============================
    LOGIN
 ============================ */
 export const login = async ({ email, password }) => {
   if (!email || !password) {
-    throw new Error('Email and password are required');
+    throw createHttpError(400, 'Email and password are required', 'INVALID_LOGIN_PAYLOAD');
   }
 
-  email = email.trim().toLowerCase();
+  const normalizedEmail = email.trim().toLowerCase();
 
-  if (!isValidEmail(email)) {
-    throw new Error('Invalid email or password');
+  if (!isValidEmail(normalizedEmail)) {
+    throw createHttpError(401, 'Invalid email or password', 'INVALID_CREDENTIALS');
   }
 
-  const user = await db.user.findUnique({
-    where: { email },
+  const user = await db.user.findFirst({
+    where: {
+      email: normalizedEmail,
+      deletedAt: null,
+    },
     include: {
       roles: {
         include: {
@@ -159,22 +178,17 @@ export const login = async ({ email, password }) => {
   });
 
   if (!user || !user.isActive) {
-    throw new Error('Invalid email or password');
+    throw createHttpError(401, 'Invalid email or password', 'INVALID_CREDENTIALS');
   }
 
-  const valid = await comparePassword(password, user.password);
-  if (!valid) {
-    throw new Error('Invalid email or password');
+  const isPasswordValid = await comparePassword(password, user.password);
+
+  if (!isPasswordValid) {
+    throw createHttpError(401, 'Invalid email or password', 'INVALID_CREDENTIALS');
   }
 
-  const roles = user.roles.map(r => r.role.name);
-  const permissions = [
-    ...new Set(
-      user.roles.flatMap(r =>
-        r.role.permissions.map(p => p.permission.code)
-      )
-    ),
-  ];
+  const roles = user.roles.map((userRole) => userRole.role.name);
+  const permissions = buildPermissions(user.roles.map((userRole) => userRole.role));
 
   const token = generateToken({
     userId: user.id,
@@ -190,6 +204,7 @@ export const login = async ({ email, password }) => {
       fullName: user.fullName,
       roles,
       permissions,
+      isActive: user.isActive,
     },
   };
 };
@@ -199,11 +214,14 @@ export const login = async ({ email, password }) => {
 ============================ */
 export const getMe = async (userId) => {
   if (!userId) {
-    throw new Error('Unauthorized');
+    throw createHttpError(401, 'Unauthorized', 'UNAUTHENTICATED');
   }
 
-  const user = await db.user.findUnique({
-    where: { id: userId },
+  const user = await db.user.findFirst({
+    where: {
+      id: userId,
+      deletedAt: null,
+    },
     include: {
       roles: {
         include: {
@@ -222,17 +240,11 @@ export const getMe = async (userId) => {
   });
 
   if (!user || !user.isActive) {
-    throw new Error('User not found');
+    throw createHttpError(404, 'User not found', 'USER_NOT_FOUND');
   }
 
-  const roles = user.roles.map(r => r.role.name);
-  const permissions = [
-    ...new Set(
-      user.roles.flatMap(r =>
-        r.role.permissions.map(p => p.permission.code)
-      )
-    ),
-  ];
+  const roles = user.roles.map((userRole) => userRole.role.name);
+  const permissions = buildPermissions(user.roles.map((userRole) => userRole.role));
 
   return {
     id: user.id,

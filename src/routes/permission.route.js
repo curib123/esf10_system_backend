@@ -6,17 +6,9 @@ import {
   authorizePermission,
   authorizeRole,
 } from '../middleware/auth.middleware.js';
+import { ADMIN_ROLE } from '../configs/env.config.js';
 
 const router = express.Router();
-
-/* ============================
-   GLOBAL GUARDS
-============================ */
-const ADMIN_ROLE = process.env.RBAC_ADMIN_ROLE;
-
-if (!ADMIN_ROLE) {
-  throw new Error('RBAC_ADMIN_ROLE is not defined in environment variables');
-}
 
 router.use(authenticate);
 router.use(authorizeRole(ADMIN_ROLE));

@@ -6,57 +6,16 @@ import {
   getReportCardService,
   upsertGradesService,
 } from '../services/grades.service.js';
-
-/* =========================
-   ERROR MAPPING
-========================= */
-const ERROR_MAP = {
-  ENROLLMENT_NOT_FOUND: { status: 404, message: 'Enrollment not found' },
-  NOT_SECTION_ADVISER: { status: 403, message: 'Only the section adviser can encode grades' },
-  ENROLLMENT_NOT_ACTIVE: { status: 400, message: 'Enrollment is not active' },
-  INVALID_GRADING_PERIOD: { status: 400, message: 'Invalid grading period' },
-  INVALID_GRADE_VALUE: { status: 400, message: 'Grade must be a number between 0 and 100' },
-  INVALID_SUBJECT_FOR_ENROLLMENT: { status: 400, message: 'Subject does not belong to this enrollment' },
-  DUPLICATE_SUBJECT_PERIOD: { status: 400, message: 'Duplicate subject and period detected' },
-  FINAL_NOT_EDITABLE: { status: 400, message: 'Final grades are auto-computed and cannot be edited' },
-  EMPTY_GRADES_PAYLOAD: { status: 400, message: 'No grades provided' },
-  INVALID_GRADE_PAYLOAD: { status: 400, message: 'Invalid grade payload structure' },
-  FORBIDDEN: { status: 403, message: 'You do not have permission to access these grades' },
-  SECTION_NOT_FOUND: { status: 404, message: 'Section not found' },
-};
-
-export const handleError = (res, error, debug = {}) => {
-  const isDev = process.env.NODE_ENV !== 'production';
-
-  // Known domain errors
-  const knownErrors = {
-    ENROLLMENT_NOT_FOUND: 404,
-    NOT_SECTION_ADVISER: 403,
-    ENROLLMENT_NOT_ACTIVE: 409,
-    EMPTY_GRADES_PAYLOAD: 400,
-    INVALID_GRADE_PAYLOAD: 400,
-    INVALID_GRADING_PERIOD: 400,
-    FINAL_NOT_EDITABLE: 409,
-    DUPLICATE_SUBJECT_PERIOD: 409,
-    INVALID_SUBJECT_FOR_ENROLLMENT: 400,
-  };
-
-  const status = knownErrors[error.message] || 500;
-
-  res.status(status).json({
-    success: false,
-    error: error.message || 'INTERNAL_SERVER_ERROR',
-    ...(isDev && {
-      debug,
-    }),
-  });
-};
-
+import { sendError } from '../utils/http.util.js';
+import {
+  getAuthenticatedUserId,
+  parsePositiveInt,
+} from '../utils/request.util.js';
 
 /* =========================
    GET ALLOWED GRADING PERIODS
 ========================= */
-export const getAllowedGradingPeriods = async (req, res) => {
+export const getAllowedGradingPeriods = async (_req, res) => {
   try {
     const periods = await getAllowedGradingPeriodsService();
 
@@ -66,7 +25,7 @@ export const getAllowedGradingPeriods = async (req, res) => {
       data: periods,
     });
   } catch (error) {
-    handleError(res, error);
+    sendError(res, error, 'Failed to fetch grading configuration');
   }
 };
 
@@ -76,8 +35,8 @@ export const getAllowedGradingPeriods = async (req, res) => {
 export const getGradesByEnrollment = async (req, res) => {
   try {
     const grades = await getGradesByEnrollmentService({
-      enrollmentId: Number(req.params.enrollmentId),
-      currentUserId: req.user.id,
+      enrollmentId: parsePositiveInt(req.params.enrollmentId, 'enrollmentId'),
+      currentUserId: getAuthenticatedUserId(req),
       permissions: req.user.permissions || [],
     });
 
@@ -86,7 +45,7 @@ export const getGradesByEnrollment = async (req, res) => {
       data: grades,
     });
   } catch (error) {
-    handleError(res, error);
+    sendError(res, error, 'Failed to fetch grades');
   }
 };
 
@@ -96,8 +55,8 @@ export const getGradesByEnrollment = async (req, res) => {
 export const getFinalGradesByEnrollment = async (req, res) => {
   try {
     const grades = await getFinalGradesByEnrollmentService({
-      enrollmentId: Number(req.params.enrollmentId),
-      currentUserId: req.user.id,
+      enrollmentId: parsePositiveInt(req.params.enrollmentId, 'enrollmentId'),
+      currentUserId: getAuthenticatedUserId(req),
       permissions: req.user.permissions || [],
     });
 
@@ -106,7 +65,7 @@ export const getFinalGradesByEnrollment = async (req, res) => {
       data: grades,
     });
   } catch (error) {
-    handleError(res, error);
+    sendError(res, error, 'Failed to fetch final grades');
   }
 };
 
@@ -116,8 +75,8 @@ export const getFinalGradesByEnrollment = async (req, res) => {
 export const getReportCard = async (req, res) => {
   try {
     const reportCard = await getReportCardService({
-      enrollmentId: Number(req.params.enrollmentId),
-      currentUserId: req.user.id,
+      enrollmentId: parsePositiveInt(req.params.enrollmentId, 'enrollmentId'),
+      currentUserId: getAuthenticatedUserId(req),
       permissions: req.user.permissions || [],
     });
 
@@ -126,7 +85,7 @@ export const getReportCard = async (req, res) => {
       data: reportCard,
     });
   } catch (error) {
-    handleError(res, error);
+    sendError(res, error, 'Failed to fetch report card');
   }
 };
 
@@ -141,14 +100,15 @@ export const getQuarterSummary = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: 'sectionId, subjectId, and period are required',
+        code: 'INVALID_QUERY',
       });
     }
 
     const summary = await getQuarterSummaryService({
-      sectionId: Number(sectionId),
-      subjectId: Number(subjectId),
+      sectionId: parsePositiveInt(sectionId, 'sectionId'),
+      subjectId: parsePositiveInt(subjectId, 'subjectId'),
       period,
-      currentUserId: req.user.id,
+      currentUserId: getAuthenticatedUserId(req),
     });
 
     res.json({
@@ -156,7 +116,7 @@ export const getQuarterSummary = async (req, res) => {
       data: summary,
     });
   } catch (error) {
-    handleError(res, error);
+    sendError(res, error, 'Failed to fetch quarter summary');
   }
 };
 
@@ -164,21 +124,11 @@ export const getQuarterSummary = async (req, res) => {
    ENCODE / UPDATE GRADES
 ========================= */
 export const upsertGrades = async (req, res) => {
-  const enrollmentId = Number(req.params.enrollmentId);
-  const { grades } = req.body;
-  const currentUserId = Number(req.user?.userId);
-
-  if (!currentUserId) {
-    return res.status(401).json({
-      success: false,
-      error: 'UNAUTHENTICATED',
-      ...(process.env.NODE_ENV !== 'production' && {
-        debug: { enrollmentId, reqUser: req.user },
-      }),
-    });
-  }
-
   try {
+    const enrollmentId = parsePositiveInt(req.params.enrollmentId, 'enrollmentId');
+    const { grades } = req.body;
+    const currentUserId = getAuthenticatedUserId(req);
+
     await upsertGradesService({
       enrollmentId,
       grades,
@@ -188,15 +138,8 @@ export const upsertGrades = async (req, res) => {
     res.json({
       success: true,
       message: 'Grades saved successfully. Final grades auto-computed.',
-      ...(process.env.NODE_ENV !== 'production' && {
-        debug: { enrollmentId, currentUserId },
-      }),
     });
   } catch (error) {
-    handleError(res, error, {
-      enrollmentId,
-      currentUserId,
-    });
+    sendError(res, error, 'Failed to save grades');
   }
 };
-

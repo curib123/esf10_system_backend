@@ -19,25 +19,31 @@ export const createEnrollmentService = async ({
   gradeLevelId,
   sectionId,
 }) => {
-  // ✅ validate school year is active
+  const student = await db.student.findFirst({
+    where: {
+      id: studentId,
+      deletedAt: null,
+    },
+    select: { id: true },
+  });
+
+  if (!student) throw new Error('STUDENT_NOT_FOUND');
+
   const schoolYear = await db.schoolYear.findFirst({
     where: { id: schoolYearId, isActive: true },
   });
   if (!schoolYear) throw new Error('SCHOOL_YEAR_NOT_ACTIVE');
 
-  // ✅ validate curriculum version is active
   const curriculumVersion = await db.curriculumVersion.findFirst({
     where: { id: curriculumVersionId, effectiveTo: null },
   });
   if (!curriculumVersion) throw new Error('CURRICULUM_VERSION_NOT_ACTIVE');
 
-  // ✅ validate grade level is active
   const gradeLevel = await db.gradeLevel.findFirst({
     where: { id: gradeLevelId, isActive: true },
   });
   if (!gradeLevel) throw new Error('GRADE_LEVEL_NOT_ACTIVE');
 
-  // ✅ validate section belongs to grade level + school year
   if (sectionId) {
     const section = await db.section.findFirst({
       where: {
@@ -46,6 +52,7 @@ export const createEnrollmentService = async ({
         schoolYearId,
       },
     });
+
     if (!section) throw new Error('INVALID_SECTION');
   }
 
@@ -76,12 +83,10 @@ export const getEnrollmentsService = async ({
 
   const where = {
     deletedAt: null,
-
     ...(schoolYearId && { schoolYearId: Number(schoolYearId) }),
     ...(gradeLevelId && { gradeLevelId: Number(gradeLevelId) }),
     ...(status && { status }),
     ...(sectionId && { sectionId: Number(sectionId) }),
-
     ...(q && {
       OR: [
         {
@@ -153,8 +158,11 @@ export const getEnrollmentsService = async ({
    READ ONE
 ========================= */
 export const getEnrollmentByIdService = async (id) => {
-  return db.enrollment.findUnique({
-    where: { id },
+  return db.enrollment.findFirst({
+    where: {
+      id,
+      deletedAt: null,
+    },
     include: {
       student: true,
       gradeLevel: true,
@@ -179,12 +187,19 @@ export const getEnrollmentByIdService = async (id) => {
    UPDATE ENROLLMENT
 ========================= */
 export const updateEnrollmentService = async (id, data) => {
-  if (data.sectionId) {
-    const enrollment = await db.enrollment.findUnique({
-      where: { id },
-      select: { gradeLevelId: true, schoolYearId: true },
-    });
+  const enrollment = await db.enrollment.findFirst({
+    where: {
+      id,
+      deletedAt: null,
+    },
+    select: { gradeLevelId: true, schoolYearId: true },
+  });
 
+  if (!enrollment) {
+    throw new Error('ENROLLMENT_NOT_FOUND');
+  }
+
+  if (data.sectionId !== undefined && data.sectionId !== null) {
     const section = await db.section.findFirst({
       where: {
         id: data.sectionId,
@@ -211,6 +226,7 @@ export const completeEnrollmentService = async (id) => {
     data: { status: 'COMPLETED' },
   });
 };
+
 export const getSubjectsByEnrollmentService = async ({
   enrollmentId,
   currentUserId,
@@ -225,14 +241,12 @@ export const getSubjectsByEnrollmentService = async ({
 
   if (!enrollment) throw new Error('ENROLLMENT_NOT_FOUND');
 
-  // ✅ Check enrollment status
   if (enrollment.status !== 'ACTIVE') {
     throw new Error('ENROLLMENT_NOT_ACTIVE');
   }
 
-  // 🔒 Authorization: Adviser or Admin with grades.view permission
   const isAdviser = enrollment.section?.adviserId === currentUserId;
-  const canView = permissions?.includes('grades.view') || false;
+  const canView = Array.isArray(permissions) && permissions.includes('grades.view');
 
   if (!isAdviser && !canView) {
     throw new Error('FORBIDDEN');

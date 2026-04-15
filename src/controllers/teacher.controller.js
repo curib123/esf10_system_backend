@@ -1,4 +1,6 @@
 import { getMyAdvisedStudentsService } from '../services/teacher.service.js';
+import { sendError } from '../utils/http.util.js';
+import { getAuthenticatedUserId } from '../utils/request.util.js';
 
 export const getMyAdvisedStudents = async (req, res) => {
   try {
@@ -13,7 +15,7 @@ export const getMyAdvisedStudents = async (req, res) => {
     } = req.query;
 
     const result = await getMyAdvisedStudentsService({
-      currentUserId: req.user.id,
+      currentUserId: getAuthenticatedUserId(req),
       schoolYearId,
       gradeLevelId,
       sectionId,
@@ -29,22 +31,6 @@ export const getMyAdvisedStudents = async (req, res) => {
       ...result, // data, count, page, limit
     });
   } catch (error) {
-    const map = {
-      FORBIDDEN: {
-        status: 403,
-        message: 'You are not allowed to view these students',
-      },
-      NO_ACTIVE_SCHOOL_YEAR: {
-        status: 400,
-        message: 'No active school year found',
-      },
-    };
-
-    const err = map[error.message];
-
-    res.status(err?.status || 500).json({
-      success: false,
-      message: err?.message || 'Failed to fetch advised students',
-    });
+    sendError(res, error, 'Failed to fetch advised students');
   }
 };

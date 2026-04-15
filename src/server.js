@@ -1,12 +1,10 @@
-import dotenv from 'dotenv';
+import './configs/env.config.js';
 
 import app from './app.js';
 import {
   connectDB,
   disconnectDB,
 } from './configs/db.config.js';
-
-dotenv.config(); // load env first
 
 const PORT = process.env.PORT || 3001;
 const NODE_ENV = process.env.NODE_ENV || "development";

@@ -9,62 +9,63 @@ import {
   upsertGrades,
 } from '../controllers/grades.controller.js';
 import { authenticate } from '../middleware/auth.middleware.js';
+import {
+  validateBody,
+  validateParams,
+  validateQuery,
+} from '../middleware/validation.middleware.js';
+import {
+  gradesEnrollmentIdParamSchema,
+  gradesSummaryQuerySchema,
+  gradesUpsertBodySchema,
+} from '../validators/request.schemas.js';
 
 const router = Router();
 
-/* =========================
-   PUBLIC (AUTHENTICATED)
-========================= */
-
-// Get grading configuration (periods, weights, descriptors)
 router.get('/config', authenticate, getAllowedGradingPeriods);
-
-// Alias for backwards compatibility
 router.get('/allowed-quarters', authenticate, getAllowedGradingPeriods);
 
-/* =========================
-   ADVISER / ADMIN ROUTES
-========================= */
-
-// Get all grades for an enrollment
 router.get(
   '/enrollment/:enrollmentId',
   authenticate,
+  validateParams(gradesEnrollmentIdParamSchema),
   getGradesByEnrollment
 );
 
-// Get final grades only
 router.get(
   '/enrollment/:enrollmentId/final',
   authenticate,
+  validateParams(gradesEnrollmentIdParamSchema),
   getFinalGradesByEnrollment
 );
 
-// Get full report card (comprehensive)
 router.get(
   '/enrollment/:enrollmentId/report-card',
   authenticate,
+  validateParams(gradesEnrollmentIdParamSchema),
   getReportCard
 );
 
-// Get quarter summary/stats for a section (adviser only)
 router.get(
   '/summary',
   authenticate,
+  validateQuery(gradesSummaryQuerySchema),
   getQuarterSummary
 );
 
-// Create/update grades (adviser only)
 router.post(
   '/enrollment/:enrollmentId',
   authenticate,
+  validateParams(gradesEnrollmentIdParamSchema),
+  validateBody(gradesUpsertBodySchema),
   upsertGrades
 );
 
-// Also support PUT for idempotent updates
 router.put(
   '/enrollment/:enrollmentId',
   authenticate,
+  validateParams(gradesEnrollmentIdParamSchema),
+  validateBody(gradesUpsertBodySchema),
   upsertGrades
 );
 

@@ -6,6 +6,11 @@ import {
   getSubjectsByEnrollmentService,
   updateEnrollmentService,
 } from '../services/enrollment.service.js';
+import { sendError } from '../utils/http.util.js';
+import {
+  getAuthenticatedUserId,
+  parsePositiveInt,
+} from '../utils/request.util.js';
 
 /* =========================
    CREATE
@@ -34,17 +39,7 @@ export const createEnrollment = async (req, res) => {
       data: enrollment,
     });
   } catch (error) {
-    const map = {
-      SCHOOL_YEAR_NOT_ACTIVE: 'School year is not active',
-      CURRICULUM_VERSION_NOT_ACTIVE: 'Curriculum version is not active',
-      GRADE_LEVEL_NOT_ACTIVE: 'Grade level is not active',
-      INVALID_SECTION: 'Invalid section for selected grade level and school year',
-    };
-
-    res.status(400).json({
-      success: false,
-      message: map[error.message] || 'Failed to create enrollment',
-    });
+    sendError(res, error, 'Failed to create enrollment');
   }
 };
 
@@ -61,11 +56,8 @@ export const getEnrollments = async (req, res) => {
       message: 'Enrollments fetched successfully',
       ...result,
     });
-  } catch {
-    res.status(500).json({
-      success: false,
-      message: 'Failed to fetch enrollments',
-    });
+  } catch (error) {
+    sendError(res, error, 'Failed to fetch enrollments');
   }
 };
 
@@ -74,7 +66,7 @@ export const getEnrollments = async (req, res) => {
 ========================= */
 export const getEnrollmentById = async (req, res) => {
   try {
-    const id = Number(req.params.id);
+    const id = parsePositiveInt(req.params.id, 'enrollmentId');
     const enrollment = await getEnrollmentByIdService(id);
 
     if (!enrollment) {
@@ -89,11 +81,8 @@ export const getEnrollmentById = async (req, res) => {
       message: 'Enrollment fetched successfully',
       data: enrollment,
     });
-  } catch {
-    res.status(500).json({
-      success: false,
-      message: 'Failed to fetch enrollment',
-    });
+  } catch (error) {
+    sendError(res, error, 'Failed to fetch enrollment');
   }
 };
 
@@ -102,7 +91,7 @@ export const getEnrollmentById = async (req, res) => {
 ========================= */
 export const updateEnrollment = async (req, res) => {
   try {
-    const id = Number(req.params.id);
+    const id = parsePositiveInt(req.params.id, 'enrollmentId');
     const { sectionId } = req.body;
 
     const enrollment = await updateEnrollmentService(id, {
@@ -115,14 +104,7 @@ export const updateEnrollment = async (req, res) => {
       data: enrollment,
     });
   } catch (error) {
-    const map = {
-      INVALID_SECTION: 'Invalid section for selected grade level and school year',
-    };
-
-    res.status(400).json({
-      success: false,
-      message: map[error.message] || 'Failed to update enrollment',
-    });
+    sendError(res, error, 'Failed to update enrollment');
   }
 };
 
@@ -131,18 +113,15 @@ export const updateEnrollment = async (req, res) => {
 ========================= */
 export const completeEnrollment = async (req, res) => {
   try {
-    const id = Number(req.params.id);
+    const id = parsePositiveInt(req.params.id, 'enrollmentId');
     await completeEnrollmentService(id);
 
     res.json({
       success: true,
       message: 'Enrollment completed successfully',
     });
-  } catch {
-    res.status(500).json({
-      success: false,
-      message: 'Failed to complete enrollment',
-    });
+  } catch (error) {
+    sendError(res, error, 'Failed to complete enrollment');
   }
 };
 
@@ -150,8 +129,8 @@ export const completeEnrollment = async (req, res) => {
 export const getSubjectsByEnrollment = async (req, res) => {
   try {
     const subjects = await getSubjectsByEnrollmentService({
-      enrollmentId: Number(req.params.id),
-      currentUserId: req.user.id,
+      enrollmentId: parsePositiveInt(req.params.id, 'enrollmentId'),
+      currentUserId: getAuthenticatedUserId(req),
       permissions: req.user.permissions,
     });
 
@@ -161,19 +140,6 @@ export const getSubjectsByEnrollment = async (req, res) => {
       data: subjects,
     });
   } catch (error) {
-    const map = {
-      ENROLLMENT_NOT_FOUND: 'Enrollment not found',
-      ENROLLMENT_NOT_ACTIVE: 'Enrollment is not active',
-      FORBIDDEN: 'You do not have permission to view subjects',
-    };
-
-    const statusCode = 
-      error.message === 'ENROLLMENT_NOT_FOUND' ? 404 :
-      error.message === 'ENROLLMENT_NOT_ACTIVE' ? 400 : 403;
-
-    res.status(statusCode).json({
-      success: false,
-      message: map[error.message] || 'Failed to fetch subjects',
-    });
+    sendError(res, error, 'Failed to fetch subjects');
   }
 };

@@ -1,5 +1,6 @@
 import express from 'express';
 
+import { ADMIN_ROLE } from '../configs/env.config.js';
 import {
   login,
   me,
@@ -10,38 +11,30 @@ import {
   authorizePermission,
   authorizeRole,
 } from '../middleware/auth.middleware.js';
+import { validateBody } from '../middleware/validation.middleware.js';
+import {
+  authLoginSchema,
+  authRegisterSchema,
+} from '../validators/request.schemas.js';
 
 const router = express.Router();
-
-/* ============================
-   CONSTANTS
-============================ */
-const ADMIN_ROLE = process.env.RBAC_ADMIN_ROLE;
-
-if (!ADMIN_ROLE) {
-  throw new Error('RBAC_ADMIN_ROLE is not defined in environment variables');
-}
 
 /* ============================
    PUBLIC ROUTES
 ============================ */
 
-// Login
-router.post('/login', login);
-
-// Get current user
+router.post('/login', validateBody(authLoginSchema), login);
 router.get('/me', authenticate, me);
 
 /* ============================
    PROTECTED ROUTES (ADMIN)
 ============================ */
-
-// Register user (admin-controlled)
 router.post(
   '/register',
   authenticate,
   authorizeRole(ADMIN_ROLE),
   authorizePermission('user.create'),
+  validateBody(authRegisterSchema),
   register
 );
 
